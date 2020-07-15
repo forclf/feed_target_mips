@@ -19,6 +19,19 @@
 	};
 };
 
+&ponmbox1 {
+	status = "okay";
+	resets = <&rcu0 0x10 28>;
+	reset-names = "ponip";
+	/delete-property/ pinctrl-names;
+	/delete-property/ pinctrl-0;
+};
+
+&lan1 {
+	intel,lct-en = <0>;
+	intel,extra-subif = <0>;
+};
+
 &qspi0 {
 	status = "okay";
 	ltq-spinand@0 {

@@ -97,6 +97,15 @@ fix_config_options() {
 		echo CONFIG_KERNEL_GIT_CLONE_URI=\"$VAR2\" >> $BASEDIR/.config
 	fi
 
+	local VAR=`grep 'CONFIG_INTEL_MIPS_KEYS_PROVISION=y' $CURDIR/.config`;
+	if [ "$VAR" != "" ]; then
+		# remove existing config
+		sed -i '/CONFIG_INTEL_MIPS_/d' $BASEDIR/.config
+		# copy other secboot options
+		echo "CONFIG_INTEL_MIPS_KEYS_PROVISION=y" >> $BASEDIR/.config
+		awk '/^(#[[:space:]]+)?CONFIG_XRX500_BOOTCORE/{sub("CONFIG_XRX500_BOOTCORE_","CONFIG_INTEL_MIPS_");print}' $CURDIR/.config >> $BASEDIR/.config
+	fi
+
 #
 # To be reviewed, how the UBOOT configs should be handled
 #

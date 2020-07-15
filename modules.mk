@@ -154,7 +154,6 @@ endef
 
 $(eval $(call KernelPackage,intel_mips-svip-nat))
 
-
 define KernelPackage/intel_eth_drv_xrx500
  SUBMENU:=Lantiq
  TITLE:= Intel Ethernet Driver for xRX500 (Module Support)
@@ -326,3 +325,60 @@ endef
 
 $(eval $(call KernelPackage,intel-cpufreq))
 
+
+define KernelPackage/serial-lantiq
+  TITLE:=Intel Serial (compile in)
+  SUBMENU:=Intel
+  DEPENDS:=@TARGET_intel_mips_prx300
+  KCONFIG:=CONFIG_SERIAL_LANTIQ=y
+endef
+
+define KernelPackage/serial-lantiq/description
+  Compiles the lantiq serial driver into the kernel.
+endef
+
+$(eval $(call KernelPackage,serial-lantiq))
+
+
+define KernelPackage/serial-bootcore
+  TITLE:=Intel bootcore Serial (compile in)
+  SUBMENU:=Intel
+  DEPENDS:=@TARGET_intel_mips_prx300_4kec
+  KCONFIG:=CONFIG_SERIAL_GRX500_BOOTCORE_CONSOLE=y
+endef
+
+define KernelPackage/serial-bootcore/description
+  Compiles the grx500 bootcore serial driver into the kernel.
+endef
+
+$(eval $(call KernelPackage,serial-bootcore))
+
+
+define KernelPackage/intel-icc-regmap
+  TITLE:=Intel ICC regmap driver (compiled in)
+  SUBMENU:=Intel
+  KCONFIG:= \
+        CONFIG_REGMAP_ICC=y
+endef
+
+define KernelPackage/intel-icc-regmap/description
+  Regmap over ICC driver for register access over the TEP.
+endef
+
+$(eval $(call KernelPackage,intel-icc-regmap))
+
+
+define KernelPackage/pon-qos
+  SUBMENU:=Lantiq
+  TITLE:=PON QoS Driver
+  DEPENDS:=@TARGET_intel_mips_prx300
+  KCONFIG:=CONFIG_PON_QOS
+  FILES:=$(LINUX_DIR)/drivers/net/datapath/pon_qos/pon_qos.ko
+  AUTOLOAD:=$(call AutoProbe,pon_qos)
+endef
+
+define KernelPackage/pon_qos/description
+ Kernel module for PON QoS support.
+endef
+
+$(eval $(call KernelPackage,pon-qos))

@@ -137,7 +137,11 @@ and USB C use sso gpio pin3 , default shall be pulled high.
 
 &gsw_f24s {
 	status = "okay";
+	gsw_core@0 {
+		intel,syscon = <&sysconf>;
+	};
 };
+
 /******************************************************************************
  ** Board configuration: Enable pinctrl board configuration.
  ******************************************************************************/
@@ -180,6 +184,13 @@ and USB C use sso gpio pin3 , default shall be pulled high.
 	status = "okay";
 	ngpios = <24>;
 	intel,sso-update-rate = <250000>;
+
+	f24s_rst {
+		gpio-hog;
+		gpios = <7 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "f24s_reset";
+	};
 };
 
 &ssoled {
@@ -219,13 +230,6 @@ and USB C use sso gpio pin3 , default shall be pulled high.
 		intel,led-pin = <6>;
 	};
 
-	led7: led7 {
-		label = "led7:green:f24s_power";
-		led-gpio = <&ssogpio 7 0>;
-		intel,sso-brightness= <0x255>;
-		intel,led-pin = <7>;
-	};
-
 	led8: led8 {
 		label = "led8:green:voip0";
 		led-gpio = <&ssogpio 8 0>;
@@ -254,7 +258,7 @@ and USB C use sso gpio pin3 , default shall be pulled high.
 		label = "wifi0:green";
 		led-gpio = <&ssogpio 12 0>;
 		intel,led-pin = <12>;
-		intel,sso-brightness=<0x00>;
+		intel,sso-brightness = <0x00>;
 	};
 
 	led13: led13 {
@@ -282,49 +286,49 @@ and USB C use sso gpio pin3 , default shall be pulled high.
 		label = "wifi1:green";
 		led-gpio = <&ssogpio 16 0>;
 		intel,led-pin = <16>;
-		intel,sso-brightness=<0x00>;
+		intel,sso-brightness = <0x00>;
 	};
 
 	wifi_disable_2: wifi_disable_2 {
 		label = "wifi2:green";
 		led-gpio = <&ssogpio 17 0>;
 		intel,led-pin = <17>;
-		intel,sso-brightness=<0x00>;
+		intel,sso-brightness = <0x00>;
 	};
 
 	led18: led18 {
 		label = "led18:green:24g_act_led";
 		led-gpio = <&ssogpio 18 0>;
 		intel,led-pin = <18>;
-		intel,sso-brightness=<0x0>;
+		intel,sso-brightness = <0x0>;
 	};
 
 	led19: led19 {
 		label = "led19:green:5gl_led";
 		led-gpio = <&ssogpio 19 0>;
 		intel,led-pin = <19>;
-		intel,sso-brightness=<0x0>;
+		intel,sso-brightness = <0x0>;
 	};
 
 	led20: led20 {
 		label = "led20:green:5gh_led";
 		led-gpio = <&ssogpio 20 0>;
 		intel,led-pin = <20>;
-		intel,sso-brightness=<0x0>;
+		intel,sso-brightness = <0x0>;
 	};
 
 	led21: led21 {
 		label = "led21:green:lan_act_led";
 		led-gpio = <&ssogpio 21 0>;
 		intel,led-pin = <21>;
-		intel,sso-brightness=<0x0>;
+		intel,sso-brightness = <0x0>;
 	};
 
 	led22: led22 {
 		label = "led22:green:wan_status_led";
 		led-gpio = <&ssogpio 22 0>;
 		intel,led-pin = <22>;
-		intel,sso-brightness=<0x0>;
+		intel,sso-brightness = <0x0>;
 	};
 	
 	led23: led23 {
@@ -332,7 +336,7 @@ and USB C use sso gpio pin3 , default shall be pulled high.
 		led-gpio = <&ssogpio 23 0>;
 		intel,led-pin = <23>;
 		linux,default-trigger = "timer";
-		intel,sso-brightness=<0x255>;
+		intel,sso-brightness = <0x255>;
 	};
 };
 
@@ -413,7 +417,7 @@ and USB C use sso gpio pin3 , default shall be pulled high.
 				regulator-name = "1V15VDD";
 				regulator-always-on;
 				regulator-boot-on;
-				regulator-min-microvolt = <1000000>;
+				regulator-min-microvolt = <1100000>;
 				regulator-max-microvolt = <1200000>;
 				regulator-microvolt-offset = <0>;
 				vout-slew-rate = <0>;
@@ -540,6 +544,10 @@ and USB C use sso gpio pin3 , default shall be pulled high.
 		ethernet@4 {
 			compatible = "lantiq,xrx500-pdi-port";
 			reg = <7>;
+			interrupt-parent = <&gic>;
+			interrupts = <0 111 4>;
+			phy-mode = "rgmii";
+			phy-handle = <&phy6>;
 		};
 	};
 
