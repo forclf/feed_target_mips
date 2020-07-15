@@ -234,14 +234,17 @@
 		ranges = <0x0 0x16000000 0x02000000>;
 
 		rcu0: reset-controller@100000 {
-			compatible = "lantiq,rcu-grx500", "syscon";
+			compatible = "lantiq,rcu-grx500", "syscon-icc", "syscon";
 			reg = <0x100000 0x80000>;
 			#reset-cells = <2>;
-			intel,global-reset = <0x10 30>;
+			/* Added explicit GPHY reset (GLB_SW) inside RCU driver
+			 * to resolve known HW issue (global sw_reset)
+			 */
+			intel,global-reset = <&rcu0 0x10 29>, <&rcu0 0x10 30>;
 		};
 
 		sysconf: chiptop@180000 {
-			compatible = "lantiq,chiptop-grx500", "syscon", "simple-mfd";
+			compatible = "lantiq,chiptop-grx500", "syscon-icc", "syscon", "simple-mfd";
 			reg = <0x180000 0x1000>;
 			#reset-cells = <1>;
 		};
@@ -253,9 +256,13 @@
 		};
 
 		cgu0: cgu@200000 {
-			compatible = "intel,cgu-prx300", "syscon";
+			compatible = "intel,cgu-prx300", "syscon-icc", "syscon";
 			reg = <0x200000 0x810>;
 			#clock-cells = <1>;
+			/* clk rate should be divided by 1000 of the
+			 * real clk rate to match with clk rate table
+			 */
+			intel,pll-clks = <&cgu0 PRX300_CLK_LJPLL3 10000000 1>;
 
 			osc0: osc0 {
 				#clock-cells = <0>;
@@ -489,7 +496,7 @@
 				intel,pins =  <10>, /* I2C1_SCL */
 					      <11>; /* I2C1_SDA */
 				intel,function = "gpio";
-				intel,mux = <EQBR_MUX_0>;
+				intel,mux = <6>;
 				intel,groups = "i2c1_slave";
 			};
 
@@ -939,6 +946,7 @@
 				clock-names = "freq", "gate";
 				gsw_mode = <0>;
 				intel,gsw-globalpce-rules = <64>;
+				intel,gsw-aging-timeout = <30>;
 			};
 		};
 
@@ -977,51 +985,50 @@
 			lantiq,budget = <20>;
 		};
 
-		bm: bm@B00000 {
-			status = "okay";
-			compatible = "intel,prx300-bm";
-			reg-names =
-				"reg-config",
-				"ram-config",
-				"uc-mcdma0";
-			reg = < 0xB00000 0x10000 /*BM CONFIG*/
-				0xB10000 0x10000   /*BM POLICY RAM*/
-				0x850000 0x200   /*UC MCDMA0*/
-				>;
-			/* Buffer Manager Maximum supported policies */
-			intel,max-policies = <8>;
-			/* Buffer Manager Maximum supported group */
-			intel,max-groups = <2>;
-			/* Buffer Manager Maximum supported Buffer pools */
-			intel,max-pools = <4>;
- 			clocks = <&cgu0 PRX300_CLK_NGI>, <&cgu0 PRX300_GCLK_PP>;
- 			clock-names = "freq", "ppv4";
-		};
+		ppv4: ppv4@840000 {
+			compatible = "intel,ppv4", "simple-mfd";
+			#address-cells = <1>;
+			#size-cells = <1>;
+			clock-frequency-mhz = <500>;
+			clocks = <&cgu0 PRX300_CLK_NGI>, <&cgu0 PRX300_GCLK_PP>;
+			clock-names = "freq", "ppv4";
+			ranges = <0x0 0x840000 0xB20000>;
 
-		qos0: qos@846000 {
-			status = "okay";
-			compatible = "intel,prx300-ppv4qos";
-			reg-names =
-				"dccm",
-				"ivt",
-				"mbx-from-uc",
-				"mbx-to-uc",
-				"wake-uc";
-			reg = <
-				0x840000 0x8000
-				0x848000 0x400
-				0x850200 0x18
-				0x850260 0x18
-				0x851008 0x4
-			>;
+			bm: bm@2C0000 {
+				status = "okay";
+				compatible = "intel,ppv4-bm";
+				reg-names = "reg-config", "reg-ram",
+					    "bmgr-pop-push";
+				reg = <0x2C0000 0x10000>, <0x2D0000 0x10000>,
+				      <0x380000 0x800>;
+				bmgr-pop-push-hw = <0x3C0000>;
+				max-policies = <8>;
+				max-groups = <2>;
+				max-pools = <4>;
+				max-pools-in-policy = <4>;
+				pool-pop-hw-en = <0>;
+				pcu-fifo-sz = <0x400>;
+			};
 
-			intel,qos-max-port = <127>;
-			intel,wred-prioritize = <0>;
-			intel,clock-frequency-mhz = <500>;
-			intel,fw-sec-data-stack = <1 0 0x2000>; /* Is in dccm (0 for dynamically ddr allocation), Offset in DCCM, Size */
-
-			interrupt-parent = <&gic>;
-			interrupts = <GIC_SHARED 111 IRQ_TYPE_LEVEL_HIGH>;
+			qos0: qos@0 {
+				status = "okay";
+				compatible = "intel,ppv4-qos";
+				reg-names = "reg-uc", "reg-wake-uc",
+					    "reg-mbx-to-uc", "reg-bm-base";
+				reg = <0x0 0x8100>, <0x11008 0x4>,
+				      <0x10260 0x18>, <0x0 0x0>;
+				max-ports = <128>;
+				max-queues = <256>;
+				wred-prioritize-pop = <0>;
+				wred-total-resources = <0x38000>;
+				wred-p-const = <512>;
+				wred-max-q-size = <0x3fffff>;
+				num-reserved-ports = <128>;
+				num-reserved-queues = <64>;
+				fw-sec-data-stack-dccm = <1>;
+				fw-sec-data-stack-dccm-offset = <0>;
+				fw-sec-data-stack-dccm-max-sz = <0x2000>;
+			};
 		};
 
 		wan_xpcs_phy: phy {
@@ -1078,9 +1085,6 @@
 				 */
 				DQ0: cpu-port0 {
 						intel,deq-port = <0 2>;
-				};
-				DQ3: cpu-port3 {
-						intel,deq-port = <3 4>;
 				};
 		};
 

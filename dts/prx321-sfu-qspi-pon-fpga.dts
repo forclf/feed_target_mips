@@ -1,7 +1,7 @@
 /dts-v1/;
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/pinctrl/intel,equilibrium.h>
-#include "prx321-sfu-12.dtsi"
+#include "prx321-sfu.dtsi"
 
 / {
 	model = "PRX321-SFU-QSPI-PON-FPGA";

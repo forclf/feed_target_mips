@@ -7,7 +7,7 @@ CPU_TYPE:=24kc
 #CPU_SUBTYPE:=nomips16
 
 KERNEL_PATCHVER:=4.9
-LINUX_VERSION:=4.9.176
+LINUX_VERSION:=4.9.218
 
 DEVICE_TYPE:=bootloader
 DEFAULT_PACKAGES:=base-files libc libgcc busybox

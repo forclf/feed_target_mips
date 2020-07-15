@@ -9,6 +9,16 @@ PKG_NAME:=ltq-xrx500-bootcore
 PKG_RELEASE:=1
 PKG_DEFAULT_CUSTOM_SOURCE_DIR:=$(BUILD_DIR_BASE)/xRX500_BootCore
 PKG_TARGETS:=bin
+PKG_CONFIG_DEPENDS:= \
+	CONFIG_XRX500_BOOTCORE_MODEL \
+	CONFIG_XRX500_BOOTCORE_IMAGE \
+	CONFIG_XRX500_BOOTCORE_SECBOOT \
+	CONFIG_XRX500_BOOTCORE_SIGNTOOL \
+	CONFIG_XRX500_BOOTCORE_PROD_UNIQUE_KEY \
+	CONFIG_XRX500_BOOTCORE_PRIVATE_KEY \
+	CONFIG_XRX500_BOOTCORE_CERTIFICATION_SUPPORT \
+	CONFIG_XRX500_BOOTCORE_CERTIFICATION \
+	CONFIG_XRX500_BOOTCORE_ROLLBACK
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -34,11 +44,55 @@ BOOTCORE_SUFFIX:=$(shell echo $(CONFIG_XRX500_BOOTCORE_MODEL) |tr '[:upper:]' '[
 define Package/$(PKG_NAME)/config
 	menu "xRX500 Boot Core features"
 		depends on PACKAGE_$(PKG_NAME)
+
 		config XRX500_BOOTCORE_MODEL
 		string "xrx500 Bootcore Model name"
 		default ""
 		help
 		  Specify xrx500 Boot core model name for build
+
+		config XRX500_BOOTCORE_IMAGE
+		string "xrx500 Bootcore image name"
+		default ""
+		help
+		  Specify xrx500 Boot core image name for build
+
+		menuconfig XRX500_BOOTCORE_SECBOOT
+			bool "enable Secure boot config"
+			default INTEL_MIPS_SECBOOT
+
+		if XRX500_BOOTCORE_SECBOOT
+			config XRX500_BOOTCORE_CERTIFICATION_SUPPORT
+				bool "Certification Support"
+				default INTEL_MIPS_CERTIFICATION_SUPPORT
+
+			config XRX500_BOOTCORE_CERTIFICATION
+				string "certification (path)"
+				default INTEL_MIPS_CERTIFICATION
+				depends on XRX500_BOOTCORE_CERTIFICATION_SUPPORT
+
+			config XRX500_BOOTCORE_SIGNTOOL
+				string "signtool (path)" if XRX500_BOOTCORE_CERTIFICATION_SUPPORT
+				default INTEL_MIPS_SIGNTOOL
+
+			config XRX500_BOOTCORE_PROD_UNIQUE_KEY
+				string "product unique key (path)" if XRX500_BOOTCORE_CERTIFICATION_SUPPORT
+				default INTEL_MIPS_PROD_UNIQUE_KEY
+
+			config XRX500_BOOTCORE_PRIVATE_KEY
+				string "private key (path)" if XRX500_BOOTCORE_CERTIFICATION_SUPPORT
+				default INTEL_MIPS_PRIVATE_KEY
+
+			config XRX500_BOOTCORE_ROLLBACK
+				int "rollback id (0-63)" if BROKEN
+				range 0 63
+				default INTEL_MIPS_ROLLBACK
+				help
+				  This is the rollback id for the bootcore image.
+				  Setting this to a different value than the rollback id
+				  of the main image can result in a broken system.
+		endif
+
 	endmenu
 endef
 
@@ -75,9 +129,13 @@ define Build/Compile
 	$(call Build/Compile/Default)
 endef
 
+XRX500_BOOTCORE_IMAGE_FILE:=$(shell echo $(CONFIG_XRX500_BOOTCORE_IMAGE) | sed 's/_debug//g')
+
 define Package/$(PKG_NAME)/install
 	mkdir -p $(1)
-	cp -f $(PKG_DEFAULT_CUSTOM_SOURCE_DIR)/bin/targets/$(BOARD)/$(SUBTARGET)_4kec/*initramfs* $(1)/
+	# This removes the _debug postfix from the name, this is used in the PRX300 debug images.
+	cp -f $(PKG_DEFAULT_CUSTOM_SOURCE_DIR)/bin/targets/$(BOARD)/$(SUBTARGET)_4kec/openwrt-$(BOARD)-$(SUBTARGET)_4kec-$(CONFIG_XRX500_BOOTCORE_IMAGE)-initramfs-kernel.bin \
+		$(1)/openwrt-$(BOARD)-$(SUBTARGET)_4kec-$(XRX500_BOOTCORE_IMAGE_FILE)-initramfs-kernel.bin
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))

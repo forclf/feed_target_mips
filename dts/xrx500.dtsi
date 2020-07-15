@@ -180,6 +180,7 @@
 					<GIC_SHARED 181 IRQ_TYPE_LEVEL_HIGH>;
 				clocks = <&pll0aclk CBM_CLK>, <&clkgate1 GATE_CBM_CLK>;
 				clock-names = "freq", "cbm";
+				intel,highprio-lan = <1>;
 		};
 
 		mps@1107000 {
@@ -216,43 +217,6 @@
 			lantiq,eth-rx-csum-offload = <1>;
 			lantiq,eth-switch-mode = <2>;
 		};
-
-		mdio@0 {
-			#address-cells = <1>;
-			#size-cells = <0>;
-			compatible = "lantiq,xrx500-mdio";
-
-			phy2: ethernet-phy@2 {
-				reg = <2>;
-				compatible = "lantiq,phy11g", "ethernet-phy-ieee802.3-c22";
-			};
-
-			phy3: ethernet-phy@3 {
-				reg = <3>;
-				compatible = "lantiq,phy11g", "ethernet-phy-ieee802.3-c22";
-			};
-
-			phy4: ethernet-phy@4 {
-				reg = <4>;
-				compatible = "lantiq,phy11g", "ethernet-phy-ieee802.3-c22";
-			};
-
-			phy5: ethernet-phy@5 {
-				reg = <5>;
-				compatible = "lantiq,phy11g", "ethernet-phy-ieee802.3-c22";
-			};
-		};
-
-		mdio@1 {
-			#address-cells = <1>;
-			#size-cells = <0>;
-			compatible = "lantiq,xrx500-mdio-pae";
-
-			phy1: ethernet-phy@1 {
-				reg = <1>;
-				compatible = "lantiq,phy11g", "ethernet-phy-ieee802.3-c22";
-			};
-		};
 	};
 
 	ssx1@1c000000 {
@@ -278,6 +242,35 @@
 				clocks = <&pll0bclk GSWIP_CLK>, <&clkgate1 GATE_GSWIP_CLK>;
 				clock-names = "freq", "gate";
 				intel,gsw-globalpce-rules = <512>;
+				gswl_mdio: gsw_mdio {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					phy2: ethernet-phy@2 {
+						reg = <2>;
+						compatible = "ethernet-phy-idd565.a408",
+						             "ethernet-phy-ieee802.3-c22";
+					};
+					phy3: ethernet-phy@3 {
+						reg = <3>;
+						compatible = "ethernet-phy-idd565.a408",
+						             "ethernet-phy-ieee802.3-c22";
+					};
+					phy4: ethernet-phy@4 {
+						reg = <4>;
+						compatible = "ethernet-phy-idd565.a408",
+						             "ethernet-phy-ieee802.3-c22";
+					};
+					phy5: ethernet-phy@5 {
+						reg = <5>;
+						compatible = "ethernet-phy-idd565.a408",
+						             "ethernet-phy-ieee802.3-c22";
+					};
+					phy6: ethernet-phy@6 {
+						reg = <6>;
+						compatible = "ethernet-phy-idd565.a408",
+						             "ethernet-phy-ieee802.3-c22";
+					};
+				};
 			};
 		};
 
@@ -352,6 +345,15 @@
 				clocks = <&pll0bclk PAE_CLK>, <&clkgate1 GATE_PAE_CLK>;
 				clock-names = "freq", "gate";
 				intel,gsw-globalpce-rules = <512>;
+				gswr_mdio: gsw_mdio {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					phy1: ethernet-phy@1 {
+						reg = <1>;
+						compatible = "ethernet-phy-idd565.a408",
+						             "ethernet-phy-ieee802.3-c22";
+					};
+				};
 			};
 		};
 
@@ -362,13 +364,13 @@
 			gsw_core@0 {
 				compatible = "intel,f24s-gswdev";
 				num_resources = <0>;
-				intel,gsw_ext-devid = <2>;
+				intel,gsw_ext-switch = <1>; /* <0> - MMIO SWITCH, <1> - EXTERNAL SWITCH */
+				master-mdio = <&gswr_mdio>;
 				intel,gsw_ext-phyid = <0x1f>;
 				intel,gsw_ext-baseaddr = <0xe000>;
 				intel,gsw_ext-sgmiibaseaddr = <0xD000>;
-				intel,gsw-globalpce-rules = <512>;
+				intel,gsw-globalpce-rules = <128>;
 			};
-
 		};
 
 		dma1tx: dma@100000 {
@@ -688,7 +690,7 @@
 			compatible = "lantiq,rcu-grx500", "syscon";
 			reg = <0x000000 0x80000>;
 			#reset-cells = <2>;
-			intel,global-reset = <0x10 30>;
+			intel,global-reset = <&rcu0 0x10 30>;
 		};
 
 		sysconf: chiptop@00080000 {

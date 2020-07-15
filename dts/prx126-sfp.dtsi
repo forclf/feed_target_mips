@@ -130,14 +130,10 @@
 	xpcs-conntype = "SFP"; /* SFP or PHY */
 };
 
-/*Bit0 denotes - qos mode 0 - "full_qos", 1 - "short_cut" */
-/*Bit1 denotes - link speed 0 - "10G", 1 - "others" */
-/*0 - 10G full qos*/
-/*1 - 10G short cut*/
-/*2 - 1G full qos*/
-/*3 - 1G short cut*/
+/* 0 - 10G full qos */
+/* 1 - 10G short cut */
 &gsw_core {
-	gsw_mode = <0>;
+	gsw_mode = <1>;
 };
 
 /******************************************************************************

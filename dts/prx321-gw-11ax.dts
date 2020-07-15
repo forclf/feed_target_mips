@@ -46,8 +46,7 @@
 	intel,rst-interval = <200>;
 	intel,inbound-swap = <1>;
 	intel,outbound-swap = <0>;
-	resets = <&rcu0 0x10 23>, <&rcu0 0x10 0>;
-	reset-names = "core", "rcu_rst";
+	reset-gpios = <&gpio0 17 GPIO_ACTIVE_LOW>;
 	num-lanes = <1>;
 };
 
@@ -190,4 +189,19 @@
 
 &ponmbox1 {
 	status = "okay";
+};
+
+/* use CPU3 for MPE firmware */
+&cpu3 {
+	default-OS = "MPEFW";
+};
+
+&gsw_core {
+	intel,gsw-globalpce-rules = <256>;
+};
+
+&cqm {
+	DQ3: cpu-port3 {
+		intel,deq-port = <3 4>;
+	};
 };
