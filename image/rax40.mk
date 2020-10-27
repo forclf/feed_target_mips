@@ -11,7 +11,8 @@ define Device/NETGEAR_RAX40
   DEVICE_TITLE := Netgear RAX40
   DEVICE_PACKAGES := $(OWRT_PACKAGES) $(DSL_CPE_PACKAGES)
   IMAGES := sysupgrade.bin fullimage.img fullimage.signed
-  IMAGE/fullimage.signed = fullimage 16 | check-size $$$$(IMAGE_SIZE) | rax40sign
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  IMAGE/fullimage.signed = append-kernel | append-rootfs-uImage 16 | fullimage | check-size $$$$(IMAGE_SIZE) | rax40sign
 endef
 TARGET_DEVICES += NETGEAR_RAX40
 
