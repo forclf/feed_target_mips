@@ -1,0 +1,103 @@
+#include "prx321-gw-gfast-11ax-eth.dts"
+
+/* Model configuration */
+/ {
+	model = "PRX321-GW-11AX-GSW120-ETH";
+	compatible = "intel,prx321-gw-11ax-gsw120-eth", "intel,prx300";
+
+};
+
+/******************************************************************************
+ ** Board configuration: Enable GSWIP120 Switch
+ ******************************************************************************/
+
+&eth {
+	lan0: interface@0 {
+		compatible = "lantiq,xrx500-pdi";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0>;
+		intel,dp-dev-port = <3>;
+		intel,dp-port-id = <3>;
+		mac = <&gsw_mac1>;
+		intel,extra-subif = <1>;
+		intel,allow_subif_data_loop; /* Traffic between diff subif */
+
+		lan0_eth: ethernet@1 {
+			compatible = "lantiq,xrx500-pdi-port";
+			reg = <1>;
+			phy-mode = "rgmii";
+		};
+	};
+};
+
+&gsw_core {
+	intel,eg-sptag = <1>; /* 0-Special Tag Insertion Disable, 1-Special Tag Inseration Enable */
+};
+
+&cb0phy0 {
+	intel,mode = <1>; /*0-pcie, 1-xpcs*/
+};
+
+&pcie0 {
+	status = "disabled";
+};
+
+&pcie1 {
+	reset-gpios = <&gpio0 17 GPIO_ACTIVE_LOW>;
+};
+
+/* SSC1 is not used and GPIO 17 is needed for PCIe */
+&ssc1 {
+       status = "disabled";
+};
+
+&gpio0 {
+	/* external switch reset */
+	f24s_rest {
+		gpio-hog;
+		gpios = <19 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "f24s_reset";
+	};
+};
+
+&gsw {
+	gsw_120: gsw_core@1 {
+		status = "ok";
+		compatible = "intel,gsw_core";
+		num_resources = <0>;
+		intel,gsw_ext-switch = <1>; /* <0> - MMIO SWITCH, <1> - EXTERNAL SWITCH */
+		master-mdio = <&mdio0>;
+		intel,gsw_ext-phyid = <0x0>;
+		intel,gsw_ext-baseaddr = <0xe000>;
+		intel,gsw_ext-sgmiibaseaddr = <0xD000>;
+		intel,gsw-devid = <1>;
+		intel,gsw-globalpce-rules = <64>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_mdio0>;
+	};
+};
+
+&gsw_mac1 {
+	intel,tx-sptag = <2>;
+	intel,rx-sptag = <2>;
+};
+
+&gsw_mac2 {
+	intel,tx-sptag = <3>;
+	intel,rx-sptag = <2>;
+};
+
+&lan_xpcs0 {
+	status = "okay";
+	xpcs-mode = <3>;
+	xpcs-conn = <2>; /* <0> DISABLE ANEG, <1> MAC-SIDE SGMII, <2> PHY-SIDE SGMII */
+	power-save = <0>;
+};
+
+&qspi0 {
+	ltq-spinand@0 {
+		spi-tx-bus-width = <1>;
+	};
+};

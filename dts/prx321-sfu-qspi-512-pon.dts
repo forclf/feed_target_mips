@@ -1,10 +1,11 @@
 /dts-v1/;
 #include "prx321-sfu.dtsi"
+#include "prx300-512MB.dtsi"
 #include "prx300-pon.dtsi"
 
 / {
-	model = "PRX321-SFU-QSPI-PON";
-	compatible = "intel,prx321-sfu-qspi-pon", "intel,prx321-sfu", "intel,prx300";
+	model = "PRX321-SFU-QSPI-512-PON";
+	compatible = "intel,prx321-sfu-qspi-512-pon", "intel,prx321-sfu-qspi-pon", "intel,prx321-sfu", "intel,prx300";
 
 	chosen {
 		stdout-path = "serial0";
@@ -12,7 +13,7 @@
 
 	memory@0 {
 		device_type = "memory";
-		reg = <0x20000000 0x40000000>; /* 1024 MB */
+		reg = <0x20000000 0x20000000>; /* 512 MB */
 	};
 };
 

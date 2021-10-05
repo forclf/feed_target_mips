@@ -1,0 +1,29 @@
+/*
+ * This configures the buffer manager to use less memory suitable for systems
+ * with only 512MB DDR.
+ */
+/ {
+	reserved-memory {
+		/delete-node/ bm_pool@40000000;
+
+		/*
+		 * The early allocations from the MIPS bootmem are done from
+		 * the range starting at 0x30000000. Do not use this area for
+		 * the buffer manager CMA memory.
+		 * The TEP is starting at 0x3E000000.
+		 */
+		bm_pool0_reserved: bm_pool@31000000 {
+			reg = <0x31000000 0xD000000>;
+			compatible = "shared-dma-pool";
+			reusable;
+		};
+	};
+};
+
+&qos0 {
+	wred-total-resources = <0x38000>;
+};
+
+&cqm {
+	intel,bm-buff-num = <0x4480 0x640 0x134C0 0x2240>;
+};

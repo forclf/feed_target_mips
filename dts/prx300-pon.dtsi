@@ -1,0 +1,28 @@
+/*
+ * This activates the nodes needed to use the ITU PON functionality and
+ * deactivates the AON or Ethernet WAN functionality
+ */
+
+&wan_xpcs_phy {
+	status = "disabled";
+};
+
+&wan_xpcs {
+	status = "disabled";
+};
+
+&pon_eth {
+	status = "okay";
+};
+
+&pon_ptp0 {
+	status = "okay";
+};
+
+&pon_ptp1 {
+	status = "okay";
+};
+
+&ponmbox1 {
+	status = "okay";
+};

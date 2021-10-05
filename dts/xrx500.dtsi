@@ -227,14 +227,18 @@
 		ranges = <0x0 0x1c000000 0x02000000>;
 
 		gswl: gswitch@000000 {
+			#address-cells = <1>;
+			#size-cells = <1>;
 			compatible = "intel,gswdev";
 			intel,gsw-devid = <0>;
 			reg = <0x000000 0x3000>;
 			ranges = <0x0 0x00000000 0x00003000>;
 			pinctrl-names = "default";
-			gsw_core@0 {	
+			gsw_core@0 {
+				#address-cells = <1>;
+				#size-cells = <1>;
 				compatible = "intel,gswl-gswdev";
-				num_resources = <1>;	
+				num_resources = <1>;
 				reg = <0x000000 0x3000>;
 				ranges = <0x0 0x00000000 0x00003000>;
 				interrupt-parent = <&gic>;
@@ -242,6 +246,7 @@
 				clocks = <&pll0bclk GSWIP_CLK>, <&clkgate1 GATE_GSWIP_CLK>;
 				clock-names = "freq", "gate";
 				intel,gsw-globalpce-rules = <512>;
+				intel,gsw-devid = <0>;
 				gswl_mdio: gsw_mdio {
 					#address-cells = <1>;
 					#size-cells = <0>;
@@ -329,15 +334,19 @@
 		ranges = <0x0 0x1a000000 0x02000000>;
 
 		gswr: gswitch@000000 {
+			#address-cells = <1>;
+			#size-cells = <1>;
 			compatible = "intel,gswdev";
 			intel,gsw-devid = <1>;
 			reg = <0x000000 0x3000>;
 			ranges = <0x0 0x00000000 0x00003000>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&pinctrl_mdio_r>;
-			gsw_core@0 {	
-			    compatible = "intel,gswr-gswdev";
-				num_resources = <1>;	
+			gsw_core@0 {
+				#address-cells = <1>;
+				#size-cells = <1>;
+				compatible = "intel,gswr-gswdev";
+				num_resources = <1>;
 				reg = <0x000000 0x3000>;
 				ranges = <0x0 0x00000000 0x00003000>;
 				interrupt-parent = <&gic>;
@@ -345,6 +354,7 @@
 				clocks = <&pll0bclk PAE_CLK>, <&clkgate1 GATE_PAE_CLK>;
 				clock-names = "freq", "gate";
 				intel,gsw-globalpce-rules = <512>;
+				intel,gsw-devid = <1>;
 				gswr_mdio: gsw_mdio {
 					#address-cells = <1>;
 					#size-cells = <0>;
@@ -370,6 +380,7 @@
 				intel,gsw_ext-baseaddr = <0xe000>;
 				intel,gsw_ext-sgmiibaseaddr = <0xD000>;
 				intel,gsw-globalpce-rules = <128>;
+				intel,gsw-devid = <2>;
 			};
 		};
 

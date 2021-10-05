@@ -2,8 +2,8 @@
 #include "prx321-sfu.dtsi"
 
 / {
-	model = "PRX321-SFU-QSPI-ETH";
-	compatible = "intel,prx321-sfu-qspi-eth", "intel,prx321-sfu", "intel,prx300";
+	model = "PRX321-HGU-QSPI-ETH";
+	compatible = "intel,prx321-hgu-qspi-eth", "intel,prx321-sfu-qspi-eth", "intel,prx321-sfu", "intel,prx300";
 
 	chosen {
 		stdout-path = "serial0";
@@ -73,5 +73,20 @@
 	status = "okay";
 	ltq-spinand@0 {
 		status = "okay";
+	};
+};
+
+/* use CPU3 for MPE firmware */
+&cpu3 {
+	default-OS = "MPEFW";
+};
+
+&gsw_core {
+	intel,gsw-globalpce-rules = <256>;
+};
+
+&cqm {
+	DQ3: cpu-port3 {
+		intel,deq-port = <3 4>;
 	};
 };

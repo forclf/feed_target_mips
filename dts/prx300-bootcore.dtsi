@@ -28,11 +28,14 @@
 		sw-arbitration-delay-us = <0>, <0>, <1>;
 	};
 
-	watchdog@0,0 {
-		compatible = "lantiq,bootcorewdt","lantiq, wdt-bootcore-xrx500";
-		reg = <0 0>;
-		timeout-sec-T2 = <30>;
-		timeout-sec-T3 = <60>;
+	watchdog: watchdog@16d00000 {
+		#interrupt-cells = <1>;
+		compatible = "intel,prx300-tep-wdt";
+		reg = <0x16d00000 0x400>;
+		interrupt-parent = <&eic>;
+		interrupts = <1>;
+		intel,wdt-rcu = <&rcu0>;
+		intel,wdt-cgu = <&cgu0>;
 	};
 
 	ssx4@16000000 {
@@ -60,6 +63,12 @@
 			compatible = "intel,ts-prx300";
 			intel,syscon = <&sysconf>; /* chiptop */
 		};
+
+		cgu0: cgu@200000 {
+			compatible = "intel,cgu-prx300", "syscon-icc", "syscon";
+			reg = <0x200000 0x810>;
+		};
+
 	};
 
 	thermal-zones {

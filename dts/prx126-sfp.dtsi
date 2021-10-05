@@ -1,30 +1,45 @@
 #include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/net/lantiq,prx300-eth.h>
 #include "prx300.dtsi"
 
-&i2c0 {
-	status = "okay";
-
-	/* EEPROM of the optical WAN transceiver */
-	eeprom@50 {
-		compatible = "at,24c02";
-		reg = <0x50>;
-	};
-	eeprom@51 {
-		compatible = "at,24c02";
-		reg = <0x51>;
+/ {
+	aliases {
+		i2c0	= &i2c_gpio;
 	};
 
-	/* EEPROM of the MACOM optical WAN transceiver */
-	/* The datasheet says these are at,24c08, but then probe will fail. */
-	eeprom@4e {
-		compatible = "at,24c02";
-		reg = <0x4e>;
-		pagesize = <16>;
-	};
-	eeprom@4f {
-		compatible = "at,24c02";
-		reg = <0x4f>;
-		pagesize = <16>;
+	i2c_gpio: i2c-gpio {
+		compatible = "i2c-gpio";
+		gpios = <&gpio0 27 GPIO_ACTIVE_HIGH /* sda */
+			 &gpio0 26 GPIO_ACTIVE_HIGH /* scl */
+			>;
+		i2c-gpio,delay-us = <5>;	/* ~100 kHz */
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_i2c0_gpio>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		/* EEPROM of the optical WAN transceiver */
+		eeprom@50 {
+			compatible = "at,24c02";
+			reg = <0x50>;
+		};
+		eeprom@51 {
+			compatible = "at,24c02";
+			reg = <0x51>;
+		};
+
+		/* EEPROM of the MACOM optical WAN transceiver */
+		/* The datasheet says these are at,24c08, but then probe will fail. */
+		eeprom@4e {
+			compatible = "at,24c02";
+			reg = <0x4e>;
+			pagesize = <16>;
+		};
+		eeprom@4f {
+			compatible = "at,24c02";
+			reg = <0x4f>;
+			pagesize = <16>;
+		};
 	};
 };
 
@@ -44,7 +59,16 @@
 		intel,dp-port-id = <4>;
 		mac = <&gsw_mac2>;
 		intel,lct-en = <1>;
-		intel,extra-subif = <3>;
+		intel,extra-subif = <4>;
+		/* Specify traffic domains for LAN interfaces:
+		 * [LAN/LCT]	- UNI_BR_DOMAIN_UC  - Unicast
+		 * [MC]		- UNI_BR_DOMAIN_MC  - Multicast
+		 * [BC]		- UNI_BR_DOMAIN_BC1 - Broadcast one
+		 * [US]		- UNI_BR_DOMAIN_US  - Upstream
+		 */
+		mxl,bridge-domain = <UNI_BR_DOMAIN_UC>, <UNI_BR_DOMAIN_UC>,
+				    <UNI_BR_DOMAIN_MC>, <UNI_BR_DOMAIN_BC1>,
+				    <UNI_BR_DOMAIN_US>;
 
 		ethernet@1 {
 			compatible = "lantiq,xrx500-pdi-port";
@@ -128,12 +152,24 @@
 &lan_xpcs1 {
 	status = "disabled";
 	xpcs-conntype = "SFP"; /* SFP or PHY */
-};
-
-/* 0 - 10G full qos */
-/* 1 - 10G short cut */
-&gsw_core {
-	gsw_mode = <1>;
+	link_poll_interval = <3>;
+	xpcs_mode_cfg_seq = <3 0 2 1>;
+	/* xpcs RX EQ Settings */
+	xpcs-afe_en = <0x0>, <0x0>,<0x0>, <0x0>;
+	xpcs-dfe_en = <0x1>, <0x0>, <0x1>, <0x1>;
+	xpcs-cont_adapt_en = <0x1>, <0x1>, <0x1>, <0x1>;
+	xpcs-rx_attn_lvl = <0x7>, <0x7>, <0x7>, <0x7>;
+	xpcs-rx_ctle_boost = <0x0>, <0x0>, <0x0>, <0x0>;
+	xpcs-rx_ctle_pole = <0x6>, <0x6>, <0x6>, <0x6>;
+	xpcs-rx_vga2_gain = <0x5>, <0x5>, <0x5>, <0x5>;
+	xpcs-rx_vga1_gain = <0x5>, <0x5>, <0x5>, <0x5>;
+	/* xpcs TX EQ Settings */
+	xpcs-tx_eq_pre = <0x0>, <0x0>, <0x0>, <0x0>;
+	xpcs-tx_eq_post =  <0x0>, <0x0>, <0x1>, <0x1>;
+	xpcs-tx_eq_main = <0x28>, <0x28>, <0xC>, <0xC>;
+	xpcs-tx_iboost_lvl = <0xF>, <0xF>,<0xF>, <0xF>;
+	xpcs-tx_vboost_lvl = <0x5>, <0x5>, <0x5>, <0x5>;
+	xpcs-tx_vboost_en = <0x1>, <0x1>, <0x1>, <0x1>;
 };
 
 /******************************************************************************

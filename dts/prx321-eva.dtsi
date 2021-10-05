@@ -1,5 +1,6 @@
 #include <dt-bindings/interrupt-controller/mips-gic.h>
 #include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/net/lantiq,prx300-eth.h>
 #include "prx300.dtsi"
 
 /******************************************************************************
@@ -58,22 +59,6 @@
 		output-high;
 		line-name = "sfp_xfp_select";
 	};
-
-	/* Aquantia PHY reset on board rev 1.1 only */
-	aquantia_reset18 {
-		gpio-hog;
-		gpios = <18 GPIO_ACTIVE_HIGH>;
-		output-high;
-		line-name = "aquantia_reset18";
-	};
-
-	/* Aquantia PHY reset on board rev 1.2 and later */
-	aquantia_reset13 {
-		gpio-hog;
-		gpios = <13 GPIO_ACTIVE_HIGH>;
-		output-high;
-		line-name = "aquantia_reset13";
-	};
 };
 
 &ssoled {
@@ -116,116 +101,130 @@
 /******************************************************************************
  ** Board configuration: Enable CoC power management board feature
  ******************************************************************************/
-&i2c0 {
-	status = "okay";
-
-	/* power monitor */
-	ina219@41 {
-		compatible = "ti,ina219";
-		reg = <0x41>;
-		shunt-resistor = <10000>;
-		rail-name = "PWR_12V";
+/ {
+	aliases {
+		i2c0	= &i2c_gpio;
 	};
 
-	ina219@42 {
-		compatible = "ti,ina219";
-		reg = <0x42>;
-		shunt-resistor = <10000>;
-		rail-name = "PWR_3V3";
-	};
+	i2c_gpio: i2c-gpio {
+		compatible = "i2c-gpio";
+		gpios = <&gpio0 27 GPIO_ACTIVE_HIGH /* sda */
+			 &gpio0 26 GPIO_ACTIVE_HIGH /* scl */
+			>;
+		i2c-gpio,delay-us = <5>;	/* ~100 kHz */
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_i2c0_gpio>;
+		#address-cells = <1>;
+		#size-cells = <0>;
 
-	ina219@43 {
-		compatible = "ti,ina219";
-		reg = <0x43>;
-		shunt-resistor = <10000>;
-		rail-name = "PWR_1V2_1V35";
-	};
+		/* power monitor */
+		ina219@41 {
+			compatible = "ti,ina219";
+			reg = <0x41>;
+			shunt-resistor = <10000>;
+			rail-name = "PWR_12V";
+		};
 
-	ina219@45 {
-		compatible = "ti,ina219";
-		reg = <0x45>;
-		shunt-resistor = <10000>;
-		rail-name = "PWR_0V9";
-	};
+		ina219@42 {
+			compatible = "ti,ina219";
+			reg = <0x42>;
+			shunt-resistor = <10000>;
+			rail-name = "PWR_3V3";
+		};
 
-	ina219@46 {
-		compatible = "ti,ina219";
-		reg = <0x46>;
-		shunt-resistor = <10000>;
-		rail-name = "PWR_1V8";
-	};
+		ina219@43 {
+			compatible = "ti,ina219";
+			reg = <0x43>;
+			shunt-resistor = <10000>;
+			rail-name = "PWR_1V2_1V35";
+		};
 
-	ina219@47 {
-		compatible = "ti,ina219";
-		reg = <0x47>;
-		shunt-resistor = <10000>;
-		rail-name = "PWR_1V5";
-	};
+		ina219@45 {
+			compatible = "ti,ina219";
+			reg = <0x45>;
+			shunt-resistor = <10000>;
+			rail-name = "PWR_0V9";
+		};
 
-	ina219@48 {
-		compatible = "ti,ina219";
-		reg = <0x48>;
-		shunt-resistor = <10000>;
-		rail-name = "PWR_1V1";
-	};
+		ina219@46 {
+			compatible = "ti,ina219";
+			reg = <0x46>;
+			shunt-resistor = <10000>;
+			rail-name = "PWR_1V8";
+		};
 
-	ina219@49 {
-		compatible = "ti,ina219";
-		reg = <0x49>;
-		shunt-resistor = <10000>;
-		rail-name = "PWR_1V8_3V3";
-	};
+		ina219@47 {
+			compatible = "ti,ina219";
+			reg = <0x47>;
+			shunt-resistor = <10000>;
+			rail-name = "PWR_1V5";
+		};
 
-	ina219@4a {
-		compatible = "ti,ina219";
-		reg = <0x4a>;
-		shunt-resistor = <10000>;
-		rail-name = "PWR_3V3_TID0";
-	};
+		ina219@48 {
+			compatible = "ti,ina219";
+			reg = <0x48>;
+			shunt-resistor = <10000>;
+			rail-name = "PWR_1V1";
+		};
 
-	ina219@4b {
-		compatible = "ti,ina219";
-		reg = <0x4b>;
-		shunt-resistor = <10000>;
-		rail-name = "PWR_3V3_SFP";
-	};
+		ina219@49 {
+			compatible = "ti,ina219";
+			reg = <0x49>;
+			shunt-resistor = <10000>;
+			rail-name = "PWR_1V8_3V3";
+		};
 
-	ina219@4c {
-		compatible = "ti,ina219";
-		reg = <0x4c>;
-		shunt-resistor = <10000>;
-		rail-name = "PWR_3V3_TID1";
-	};
+		ina219@4a {
+			compatible = "ti,ina219";
+			reg = <0x4a>;
+			shunt-resistor = <10000>;
+			rail-name = "PWR_3V3_TID0";
+		};
 
-	ina219@4d {
-		compatible = "ti,ina219";
-		reg = <0x4d>;
-		shunt-resistor = <10000>;
-		rail-name = "PWR_3V3_SHR";
-	};
+		ina219@4b {
+			compatible = "ti,ina219";
+			reg = <0x4b>;
+			shunt-resistor = <10000>;
+			rail-name = "PWR_3V3_SFP";
+		};
 
-	ina219@4e {
-		compatible = "ti,ina219";
-		reg = <0x4e>;
-		shunt-resistor = <10000>;
-		rail-name = "PWR_3V3_WAN";
-	};
+		ina219@4c {
+			compatible = "ti,ina219";
+			reg = <0x4c>;
+			shunt-resistor = <10000>;
+			rail-name = "PWR_3V3_TID1";
+		};
 
-	ina219@4f {
-		compatible = "ti,ina219";
-		reg = <0x4f>;
-		shunt-resistor = <10000>;
-		rail-name = "PWR_2V5";
-	};
+		ina219@4d {
+			compatible = "ti,ina219";
+			reg = <0x4d>;
+			shunt-resistor = <10000>;
+			rail-name = "PWR_3V3_SHR";
+		};
 
-	/* EEPROM of the optical WAN transceiver */
-	eeprom@50 {
-		compatible = "at,24c02";
-		reg = <0x50>;
-	};
-	eeprom@51 {
-		compatible = "at,24c02";
-		reg = <0x51>;
+		ina219@4e {
+			compatible = "ti,ina219";
+			reg = <0x4e>;
+			shunt-resistor = <10000>;
+			rail-name = "PWR_3V3_WAN";
+		};
+
+		ina219@4f {
+			compatible = "ti,ina219";
+			reg = <0x4f>;
+			shunt-resistor = <10000>;
+			rail-name = "PWR_2V5";
+		};
+
+		/* EEPROM of the optical WAN transceiver */
+		eeprom@50 {
+			compatible = "at,24c02";
+			reg = <0x50>;
+		};
+		eeprom@51 {
+			compatible = "at,24c02";
+			reg = <0x51>;
+		};
 	};
 };
 
@@ -275,7 +274,16 @@
 		intel,dp-port-id = <3>;
 		mac = <&gsw_mac1>;
 		intel,lct-en = <1>;
-		intel,extra-subif = <3>;
+		intel,extra-subif = <4>;
+		/* Specify traffic domains for LAN interfaces:
+		 * [LAN/LCT]	- UNI_BR_DOMAIN_UC  - Unicast
+		 * [MC]		- UNI_BR_DOMAIN_MC  - Multicast
+		 * [BC]		- UNI_BR_DOMAIN_BC1 - Broadcast one
+		 * [US]		- UNI_BR_DOMAIN_US  - Upstream
+		 */
+		mxl,bridge-domain = <UNI_BR_DOMAIN_UC>, <UNI_BR_DOMAIN_UC>,
+				    <UNI_BR_DOMAIN_MC>, <UNI_BR_DOMAIN_BC1>,
+				    <UNI_BR_DOMAIN_US>;
 
 		ethernet@1 {
 			compatible = "lantiq,xrx500-pdi-port";
@@ -294,7 +302,16 @@
 		intel,dp-port-id = <4>;
 		mac = <&gsw_mac2>;
 		intel,lct-en = <1>;
-		intel,extra-subif = <3>;
+		intel,extra-subif = <4>;
+		/* Specify traffic domains for LAN interfaces:
+		 * [LAN/LCT]	- UNI_BR_DOMAIN_UC  - Unicast
+		 * [MC]		- UNI_BR_DOMAIN_MC  - Multicast
+		 * [BC]		- UNI_BR_DOMAIN_BC2 - Broadcast two
+		 * [US]		- UNI_BR_DOMAIN_US  - Upstream
+		 */
+		mxl,bridge-domain = <UNI_BR_DOMAIN_UC>, <UNI_BR_DOMAIN_UC>,
+				    <UNI_BR_DOMAIN_MC>, <UNI_BR_DOMAIN_BC2>,
+				    <UNI_BR_DOMAIN_US>;
 
 		lan1_eth: ethernet@1 {
 			compatible = "lantiq,xrx500-pdi-port";
@@ -325,6 +342,9 @@
 &gsw_mac1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_mdio0>;
+	/* Aquantia PHY reset */
+	reset-gpios = <&ssogpio 18 GPIO_ACTIVE_LOW>, /* board rev 1.1 */
+		<&ssogpio 13 GPIO_ACTIVE_LOW>; /* board rev 1.2 or later */
 };
 
 /* mdio0 bus */
@@ -439,12 +459,6 @@
 &lan_xpcs1 {
 	status = "disabled";
 	xpcs-conntype = "SFP"; /* SFP or PHY */
-};
-
-/* 0 - 10G full qos */
-/* 1 - 10G short cut */
-&gsw_core {
-	gsw_mode = <1>;
 };
 
 /******************************************************************************

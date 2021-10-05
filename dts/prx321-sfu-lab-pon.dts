@@ -1,0 +1,98 @@
+/dts-v1/;
+#include "prx321-sfu.dtsi"
+#include "prx300-pon.dtsi"
+
+/ {
+	model = "PRX321-SFU-LAB-PON";
+	compatible = "intel,prx321-sfu-lab-pon", "intel,prx321-sfu", "intel,prx300";
+
+	chosen {
+		stdout-path = "serial0";
+	};
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x20000000 0x40000000>; /* 1024 MB */
+	};
+};
+
+/* For voice enable the SPI driver needed for access to the on silicon VCODEC but prevent switching the pinmux to this SPI bus. On this design these pins are used for the QSPI bus. */
+&ssc0 {
+	status = "okay";
+	/delete-property/ pinctrl-names;
+	/delete-property/ pinctrl-0;
+};
+
+&qspi0 {
+	status = "okay";
+	ltq-spinand@0 {
+		status = "okay";
+	};
+};
+
+/* On the lab board the external PHY is replaced by an SFP slot,
+ * so delete unneeded references.
+ */
+&lan0_port {
+	/delete-property/ phy-handle;
+};
+
+&mdio0 {
+	/delete-property/ aquantia_phy;
+};
+
+/* remove resets for Aquantia PHY */
+&gsw_mac1 {
+	/delete-property/ reset-gpios;
+};
+
+&i2c_gpio {
+	status = "okay";
+
+	/* no eeprom without mux */
+	/delete-node/ eeprom@50;
+	/delete-node/ eeprom@51;
+
+	i2c-switch@70 {
+		/* The board has a pca0546, but the driver has a bug to handle
+		 * this compatible string.
+		 * Add the compatible device pca9545 in addition.
+		 */
+		compatible = "nxp,pca9545", "nxp,pca9546";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0x70>;
+
+		/* connection to LAN SFP */
+		i2c@0 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0>;
+
+			eeprom@50 {
+				compatible = "at,24c02";
+				reg = <0x50>;
+			};
+			eeprom@51 {
+				compatible = "at,24c02";
+				reg = <0x51>;
+			};
+		};
+
+		/* connection to WAN/PON SFP */
+		i2c@1 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <1>;
+
+			eeprom@50 {
+				compatible = "at,24c02";
+				reg = <0x50>;
+			};
+			eeprom@51 {
+				compatible = "at,24c02";
+				reg = <0x51>;
+			};
+		};
+	};
+};

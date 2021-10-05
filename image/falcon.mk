@@ -101,28 +101,4 @@ define Device/EASY98021
 endef
 TARGET_DEVICES += EASY98021
 
-
-define Device/EASY98020V18-PONIP
-  $(Device/Falcon)
-  IMAGE_SIZE := 7424k
-  DEVICE_TITLE := EASY98020V18PONIP - Lantiq Falcon SFU Reference Board V1.8 (PON IP FPGA)
-endef
-TARGET_DEVICES += EASY98020V18-PONIP
-
-define Device/EASY98020-PONIP
-  $(Device/Falcon)
-  IMAGE_SIZE := 7424k
-  DEVICE_TITLE := EASY98020PONIP - Lantiq Falcon SFU Reference Board (PON IP FPGA)
-endef
-TARGET_DEVICES += EASY98020-PONIP
-
-define Device/EASY98000-PONIP
-  $(Device/Falcon)
-  IMAGE_SIZE := 7424k
-  DEVICE_TITLE := EASY98000NORPONIP - Lantiq Falcon Eval Board NOR (PON IP FPGA)
-  DEVICE_PACKAGES := kmod-dm9000-nfs kmod-i2c-intel_mips kmod-eeprom-at24
-  DEVICE_DTS := EASY98000NOR-PONIP
-endef
-TARGET_DEVICES += EASY98000-PONIP
-
 endif

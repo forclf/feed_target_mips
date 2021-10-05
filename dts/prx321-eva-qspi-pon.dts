@@ -1,5 +1,6 @@
 /dts-v1/;
 #include "prx321-eva.dtsi"
+#include "prx300-pon.dtsi"
 
 / {
 	model = "PRX321-EVA-QSPI-PON";
@@ -17,30 +18,6 @@
 
 &wan {
 	status = "disabled";
-};
-
-&wan_xpcs_phy {
-	status = "disabled";
-};
-
-&wan_xpcs {
-	status = "disabled";
-};
-
-&pon_eth {
-	status = "okay";
-};
-
-&pon_ptp0 {
-	status = "okay";
-};
-
-&pon_ptp1 {
-	status = "okay";
-};
-
-&ponmbox1 {
-	status = "okay";
 };
 
 &ssc0 {
@@ -80,10 +57,3 @@
 	status = "okay";
 };
 
-&watchdog {
-	/* individual reset controls that need to
-	 * explicitly asserted during reset
-	 */
-	resets = <&rcu0 0x10 29>;
-	reset-names = "gphy";
-};

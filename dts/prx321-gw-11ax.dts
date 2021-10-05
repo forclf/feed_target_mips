@@ -1,7 +1,10 @@
 /dts-v1/;
 #include <dt-bindings/interrupt-controller/mips-gic.h>
 #include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/net/mxl,vuni.h>
 #include "prx300.dtsi"
+#include "prx300-512MB.dtsi"
+#include "prx300-pon.dtsi"
 
 /* Model configuration */
 / {
@@ -37,7 +40,7 @@
 	intel,rst-interval = <200>;
 	intel,inbound-swap = <1>;
 	intel,outbound-swap = <0>;
-	reset-gpios = <&gpio0 18 GPIO_ACTIVE_LOW>;
+	reset-gpios = <&gpio0 19 GPIO_ACTIVE_LOW>;
 	num-lanes = <1>;
 };
 
@@ -48,6 +51,11 @@
 	intel,outbound-swap = <0>;
 	reset-gpios = <&gpio0 17 GPIO_ACTIVE_LOW>;
 	num-lanes = <1>;
+};
+
+/* SSC1 is not used and GPIO 17 is needed for PCIe */
+&ssc1 {
+       status = "disabled";
 };
 
 /******************************************************************************
@@ -94,7 +102,9 @@
 &vuni {
 	status = "okay";
 	vani@0 {
-		intel,extra-subif = <0>;
+		intel,extra-subif = "VANI0", "VUNI0_0", "VUNI0_1", "VUNI0_us", "VUNI0_2";
+		intel,extra-subif-domain = <VUNI_BR_DOMAIN_NO VUNI_BR_DOMAIN_UC VUNI_BR_DOMAIN_MC VUNI_BR_DOMAIN_US VUNI_BR_DOMAIN_BC>;
+		intel,allow_subif_data_loop; /*Traffic between diff subif */
 	};
 };
 
@@ -103,6 +113,14 @@
 	intel,bm-buff-num = <0xaf40>;
 	/* Size of each buffer in pool0 */
 	intel,bm-buff-size = <0x1000>;
+	/* Buffer pools are shared for DS and US, no split */
+	intel,bm-buff-split = <0x0 0x0>;
+	/* number of radios requiring 32 VAP support defined */
+	intel,radio-32-vap = <1>;
+};
+
+&dma1tx {
+	lantiq,dma-desc-fod = <0>;
 };
 
 &pinctrl_qspi {
@@ -122,7 +140,7 @@
 		spi-max-frequency = <50000000>;
 		page-size = <2048>;
 		block-size = <17>; // 2^17, 128KB
-		spi-tx-bus-width = <4>;
+		spi-tx-bus-width = <1>;
 		spi-rx-bus-width = <4>;
 
 		/* Read-delay is needed for higher freq.
@@ -149,46 +167,37 @@
 	status = "okay";
 };
 
-&watchdog {
-	/* individual reset controls that need to
-	 * explicitly asserted during reset
-	 */
-	resets = <&rcu0 0x10 29>;
-	reset-names = "gphy";
-};
 
-&wan_xpcs_phy {
-	status = "disabled";
-};
-
-&i2c0 {
-	status = "okay";
-
-	/* EEPROM of the optical WAN transceiver */
-	eeprom@50 {
-		compatible = "at,24c02";
-		reg = <0x50>;
+/ {
+	aliases {
+		i2c0	= &i2c_gpio;
 	};
-	eeprom@51 {
-		compatible = "at,24c02";
-		reg = <0x51>;
+
+	i2c_gpio: i2c-gpio {
+		compatible = "i2c-gpio";
+		gpios = <&gpio0 27 GPIO_ACTIVE_HIGH /* sda */
+			 &gpio0 26 GPIO_ACTIVE_HIGH /* scl */
+			>;
+		i2c-gpio,delay-us = <5>;	/* ~100 kHz */
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_i2c0_gpio>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		/* EEPROM of the optical WAN transceiver */
+		eeprom@50 {
+			compatible = "at,24c02";
+			reg = <0x50>;
+		};
+		eeprom@51 {
+			compatible = "at,24c02";
+			reg = <0x51>;
+		};
 	};
 };
 
 &pon_eth {
-	status = "okay";
-};
-
-&pon_ptp0 {
-	status = "okay";
-};
-
-&pon_ptp1 {
-	status = "okay";
-};
-
-&ponmbox1 {
-	status = "okay";
+	intel,max_ctps = <128>;
 };
 
 /* use CPU3 for MPE firmware */

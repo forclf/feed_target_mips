@@ -5,20 +5,22 @@ ifeq ($(SECUREBOOT),y)
 CERT:=$(if $(CONFIG_INTEL_MIPS_CERTIFICATION_SUPPORT),-cert $(CONFIG_INTEL_MIPS_CERTIFICATION))
 
 define Build/sign-image
-	$(CONFIG_INTEL_MIPS_SIGNTOOL)  sign -type BLw  -infile $@ \
-		-prikey $(CONFIG_INTEL_MIPS_PRIVATE_KEY) \
-		-wrapkey $(CONFIG_INTEL_MIPS_PROD_UNIQUE_KEY) \
-		-attribute rollback=$(CONFIG_INTEL_MIPS_ROLLBACK) \
-		-attribute 0x80000000=$(KERNEL_ENTRY) \
-		-attribute 0x80000001=0x00000001 \
-		-attribute 0x80000002=$(KERNEL_LOADADDR) \
-		-encattr \
-		$(CERT) \
-		-kdk \
-		-pubkeytype otp \
-		-algo aes256 \
-		-outfile $@.tmp
-	mv $@.tmp $@
+	$(call locked, \
+		$(CONFIG_INTEL_MIPS_SIGNTOOL)  sign -type BLw  -infile $@ \
+			-prikey $(CONFIG_INTEL_MIPS_PRIVATE_KEY) \
+			-wrapkey $(CONFIG_INTEL_MIPS_PROD_UNIQUE_KEY) \
+			-attribute rollback=$(CONFIG_INTEL_MIPS_ROLLBACK) \
+			-attribute 0x80000000=$(KERNEL_ENTRY) \
+			-attribute 0x80000001=0x00000001 \
+			-attribute 0x80000002=$(KERNEL_LOADADDR) \
+			-encattr \
+			$(CERT) \
+			-kdk \
+			-pubkeytype otp \
+			-algo aes256 \
+			-outfile $@.tmp && \
+		mv $@.tmp $@,
+	,sign-image)
 endef
 
 define Build/sign-add-header

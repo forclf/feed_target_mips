@@ -1,4 +1,5 @@
 #include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/net/lantiq,prx300-eth.h>
 #include "prx300.dtsi"
 
 /******************************************************************************
@@ -10,13 +11,6 @@
 	intel,sso-update-rate = <250000>;
 	/* Shift clk freq: 25MHz, 12.5MHz, 6.25MHz, 3.125Mz */
 	intel,sso-shift-clk-freq = <6250000>;
-
-	aquantia_reset {
-		gpio-hog;
-		gpios = <13 GPIO_ACTIVE_HIGH>;
-		output-high;
-		line-name = "aquantia_reset";
-	};
 };
 
 &ssoled {
@@ -86,17 +80,32 @@
 /******************************************************************************
  ** Board configuration: Enable I2C for WAN transceiver EEPROM
  ******************************************************************************/
-&i2c0 {
-	status = "okay";
 
-	/* EEPROM of the optical WAN transceiver */
-	eeprom@50 {
-		compatible = "at,24c02";
-		reg = <0x50>;
+/ {
+	aliases {
+		i2c0	= &i2c_gpio;
 	};
-	eeprom@51 {
-		compatible = "at,24c02";
-		reg = <0x51>;
+
+	i2c_gpio: i2c-gpio-0 {
+		compatible = "i2c-gpio";
+		gpios = <&gpio0 27 GPIO_ACTIVE_HIGH /* sda */
+			 &gpio0 26 GPIO_ACTIVE_HIGH /* scl */
+			>;
+		i2c-gpio,delay-us = <5>;	/* ~100 kHz */
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_i2c0_gpio>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		/* EEPROM of the optical WAN transceiver */
+		eeprom@50 {
+			compatible = "at,24c02";
+			reg = <0x50>;
+		};
+		eeprom@51 {
+			compatible = "at,24c02";
+			reg = <0x51>;
+		};
 	};
 };
 
@@ -116,9 +125,18 @@
 		intel,dp-port-id = <3>;
 		mac = <&gsw_mac1>;
 		intel,lct-en = <1>;
-		intel,extra-subif = <3>;
+		intel,extra-subif = <4>;
+		/* Specify traffic domains for LAN interfaces:
+		 * [LAN/LCT]	- UNI_BR_DOMAIN_UC  - Unicast
+		 * [MC]		- UNI_BR_DOMAIN_MC  - Multicast
+		 * [BC]		- UNI_BR_DOMAIN_BC1 - Broadcast one
+		 * [US]		- UNI_BR_DOMAIN_US  - Upstream
+		 */
+		mxl,bridge-domain = <UNI_BR_DOMAIN_UC>, <UNI_BR_DOMAIN_UC>,
+				    <UNI_BR_DOMAIN_MC>, <UNI_BR_DOMAIN_BC1>,
+				    <UNI_BR_DOMAIN_US>;
 
-		ethernet@1 {
+		lan0_port: ethernet@1 {
 			compatible = "lantiq,xrx500-pdi-port";
 			reg = <1>;
 			phy-mode = "rgmii";
@@ -136,9 +154,18 @@
 		intel,dp-port-id = <4>;
 		mac = <&gsw_mac2>;
 		intel,lct-en = <1>;
-		intel,extra-subif = <3>;
+		intel,extra-subif = <4>;
+		/* Specify traffic domains for LAN interfaces:
+		 * [LAN/LCT]	- UNI_BR_DOMAIN_UC  - Unicast
+		 * [MC]		- UNI_BR_DOMAIN_MC  - Multicast
+		 * [BC]		- UNI_BR_DOMAIN_BC2 - Broadcast two
+		 * [US]		- UNI_BR_DOMAIN_US  - Upstream
+		 */
+		mxl,bridge-domain = <UNI_BR_DOMAIN_UC>, <UNI_BR_DOMAIN_UC>,
+				    <UNI_BR_DOMAIN_MC>, <UNI_BR_DOMAIN_BC2>,
+				    <UNI_BR_DOMAIN_US>;
 
-		ethernet@1 {
+		ethernet@2 {
 			compatible = "lantiq,xrx500-pdi-port";
 			reg = <2>;
 			phy-mode = "rgmii";
@@ -169,6 +196,16 @@
 &gsw_mac1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_mdio0>;
+	/* Aquantia PHY reset */
+	reset-gpios = <&ssogpio 13 GPIO_ACTIVE_LOW>;
+};
+
+&gsw_mac2 {
+	/* Ingress/Egress timestamping latency
+	 * correction for internal GPHY attached to XGMAC4
+	 */
+	ts-ig-corr = <(-382)>;
+	ts-eg-corr = <150>;
 };
 
 /* mdio0 bus */
@@ -233,7 +270,7 @@
 };
 
 &cb0phy1 {
-	status = "okay";
+	status = "disabled";
 	intel,mode = <1>; /*0-pcie, 1-xpcs*/
 };
 
@@ -244,23 +281,70 @@
 &wan_xpcs {
 	status = "disabled";
 	xpcs-conntype = "SFP"; /* SFP or PHY */
+	xpcs-no-phy-rx-auto-adapt; /* <2dB loss PHY auto adapt not needed*/
+	/* xpcs RX EQ Settings */
+	xpcs-afe_en = <0x0>, <0x0>, <0x0>, <0x0>;
+	xpcs-dfe_en = <0x0>, <0x0>, <0x0>, <0x0>;
+	xpcs-cont_adapt_en = <0x0>, <0x0>, <0x0>, <0x0>;
+	xpcs-rx_attn_lvl = <0x7>, <0x7>, <0x7>, <0x7>;
+	xpcs-rx_ctle_boost = <0x0>, <0x0>, <0x0>, <0x0>;
+	xpcs-rx_ctle_pole = <0x6>, <0x6>, <0x6>, <0x6>;
+	xpcs-rx_vga2_gain = <0x5>, <0x5>, <0x5>, <0x5>;
+	xpcs-rx_vga1_gain = <0x5>, <0x5>, <0x5>, <0x5>;
+	/* xpcs TX EQ Settings */
+	xpcs-tx_eq_pre = <0x5>, <0x5>, <0x0>, <0x0>;
+	xpcs-tx_eq_post =  <0x14>, <0x14>, <0x1>, <0x1>;
+	xpcs-tx_eq_main = <0x18>, <0x18>, <0xC>, <0xC>;
+	xpcs-tx_iboost_lvl = <0xF>, <0xF>,<0xF>, <0xF>;
+	xpcs-tx_vboost_lvl = <0x5>, <0x5>, <0x5>, <0x5>;
+	xpcs-tx_vboost_en = <0x1>, <0x1>, <0x1>, <0x1>;
 };
 
 &lan_xpcs0 {
 	status = "okay";
 	xpcs-mode = <0>; /* 0 - 10G_KR_MODE, 1 - 10G_XAUI_MODE, 2 - 1G_XAUI_MODE, 3 - 2P5G_GMII_MODE */
 	xpcs-conntype = "SFP"; /* SFP or PHY */
+	xpcs-no-phy-rx-auto-adapt; /* <2dB loss PHY auto adapt not needed*/
+	/* xpcs RX EQ Settings */
+	xpcs-afe_en = <0x0>, <0x0>, <0x0>, <0x0>;
+	xpcs-dfe_en = <0x0>, <0x0>, <0x0>, <0x0>;
+	xpcs-cont_adapt_en = <0x0>, <0x0>, <0x0>, <0x0>;
+	xpcs-rx_attn_lvl = <0x7>, <0x7>, <0x7>, <0x7>;
+	xpcs-rx_ctle_boost = <0x0>, <0x0>, <0x0>, <0x0>;
+	xpcs-rx_ctle_pole = <0x6>, <0x6>, <0x6>, <0x6>;
+	xpcs-rx_vga2_gain = <0x5>, <0x5>, <0x5>, <0x5>;
+	xpcs-rx_vga1_gain = <0x5>, <0x5>, <0x5>, <0x5>;
+	/* xpcs TX EQ Settings */
+	xpcs-tx_eq_pre = <0x0>, <0x0>, <0x0>, <0x0>;
+	xpcs-tx_eq_post =  <0x0>, <0x0>, <0x1>, <0x1>;
+	xpcs-tx_eq_main = <0x28>, <0x28>, <0xC>, <0xC>;
+	xpcs-tx_iboost_lvl = <0xF>, <0xF>,<0xF>, <0xF>;
+	xpcs-tx_vboost_lvl = <0x5>, <0x5>, <0x5>, <0x5>;
+	xpcs-tx_vboost_en = <0x1>, <0x1>, <0x1>, <0x1>;
+	link_poll_interval = <2>;
+	xpcs_mode_cfg_seq = <0 3 2 1>;
 };
 
 &lan_xpcs1 {
 	status = "disabled";
 	xpcs-conntype = "SFP"; /* SFP or PHY */
-};
-
-/* 0 - 10G full qos */
-/* 1 - 10G short cut */
-&gsw_core {
-	gsw_mode = <1>;
+	xpcs-no-phy-rx-auto-adapt; /* <2dB loss PHY auto adapt not needed*/
+	/* xpcs RX EQ Settings */
+	xpcs-afe_en = <0x0>, <0x0>, <0x0>, <0x0>;
+	xpcs-dfe_en = <0x0>, <0x0>, <0x0>, <0x0>;
+	xpcs-cont_adapt_en = <0x0>, <0x0>, <0x0>, <0x0>;
+	xpcs-rx_attn_lvl = <0x7>, <0x7>, <0x7>, <0x7>;
+	xpcs-rx_ctle_boost = <0x0>, <0x0>, <0x0>, <0x0>;
+	xpcs-rx_ctle_pole = <0x6>, <0x6>, <0x6>, <6>;
+	xpcs-rx_vga2_gain = <0x5>, <0x5>, <0x5>, <0x5>;
+	xpcs-rx_vga1_gain = <0x5>, <0x5>, <0x5>, <0x5>;
+	/* xpcs TX EQ Settings */
+	xpcs-tx_eq_pre = <0x0>, <0x0>, <0x0>, <0x0>;
+	xpcs-tx_eq_post =  <0x0>, <0x0>, <0x1>, <0x1>;
+	xpcs-tx_eq_main = <0x28>, <0x28>, <0xC>, <0xC>;
+	xpcs-tx_iboost_lvl = <0xF>, <0xF>,<0xF>, <0xF>;
+	xpcs-tx_vboost_lvl = <0x5>, <0x5>, <0x5>, <0x5>;
+	xpcs-tx_vboost_en = <0x1>, <0x1>, <0x1>, <0x1>;
 };
 
 &gphy_fw {
@@ -269,14 +353,6 @@
 
 &gphy {
 	status = "okay";
-};
-
-&watchdog {
-	/* individual reset controls that need to
-	 * explicitly asserted during reset
-	 */
-	resets = <&rcu0 0x10 29>;
-	reset-names = "gphy";
 };
 
 /******************************************************************************

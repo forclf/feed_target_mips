@@ -72,14 +72,6 @@
 	status = "okay";
 };
 
-&watchdog {
-	/* individual reset controls that need to
-	 * explicitly asserted during reset
-	 */
-	resets = <&rcu0 0x10 29>;
-	reset-names = "gphy";
-};
-
 &lan1_eth {
 	phy-handle = <&gphy>;
 };

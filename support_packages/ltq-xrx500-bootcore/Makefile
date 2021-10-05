@@ -9,7 +9,9 @@ PKG_NAME:=ltq-xrx500-bootcore
 PKG_RELEASE:=1
 PKG_DEFAULT_CUSTOM_SOURCE_DIR:=$(BUILD_DIR_BASE)/xRX500_BootCore
 PKG_TARGETS:=bin
-PKG_CONFIG_DEPENDS:= \
+
+# We need to call the "prepare" again on config changes:
+PKG_PREPARED_DEPENDS:= \
 	CONFIG_XRX500_BOOTCORE_MODEL \
 	CONFIG_XRX500_BOOTCORE_IMAGE \
 	CONFIG_XRX500_BOOTCORE_SECBOOT \
@@ -84,8 +86,8 @@ define Package/$(PKG_NAME)/config
 				default INTEL_MIPS_PRIVATE_KEY
 
 			config XRX500_BOOTCORE_ROLLBACK
-				int "rollback id (0-63)" if BROKEN
-				range 0 63
+				int "rollback id (1-63)" if BROKEN
+				range 1 63
 				default INTEL_MIPS_ROLLBACK
 				help
 				  This is the rollback id for the bootcore image.
@@ -134,7 +136,7 @@ XRX500_BOOTCORE_IMAGE_FILE:=$(shell echo $(CONFIG_XRX500_BOOTCORE_IMAGE) | sed '
 define Package/$(PKG_NAME)/install
 	mkdir -p $(1)
 	# This removes the _debug postfix from the name, this is used in the PRX300 debug images.
-	cp -f $(PKG_DEFAULT_CUSTOM_SOURCE_DIR)/bin/targets/$(BOARD)/$(SUBTARGET)_4kec/openwrt-$(BOARD)-$(SUBTARGET)_4kec-$(CONFIG_XRX500_BOOTCORE_IMAGE)-initramfs-kernel.bin \
+	cp -f $(PKG_DEFAULT_CUSTOM_SOURCE_DIR)/bin/targets/$(BOARD)/$(SUBTARGET)_4kec$(if $(CONFIG_USE_MUSL),,-$(LIBC))/openwrt-$(BOARD)-$(SUBTARGET)_4kec-$(CONFIG_XRX500_BOOTCORE_IMAGE)-initramfs-kernel.bin \
 		$(1)/openwrt-$(BOARD)-$(SUBTARGET)_4kec-$(XRX500_BOOTCORE_IMAGE_FILE)-initramfs-kernel.bin
 endef
 

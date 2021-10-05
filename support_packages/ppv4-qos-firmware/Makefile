@@ -9,10 +9,10 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=ppv4-qos-firmware
 PKG_BASE_NAME:=ppv4-qos-fw
 PKG_SOURCE_PROTO:=git
-PKG_VERSION:=1.2.10
+PKG_VERSION:=1.4.32
 PKG_RELEASE:=1
 PKG_SOURCE:=$(PKG_BASE_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=ssh://git@gts-chd.intel.com:29418/sw_ppv4/ppv4_fw_bin.git
+PKG_SOURCE_URL:=$(CONFIG_UGW_PKG_SOURCE_URL)/sw_ppv4/ppv4_fw_bin.git
 PKG_SOURCE_VERSION:=$(PKG_VERSION)
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_LICENSE:=Intel

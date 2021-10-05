@@ -1,0 +1,59 @@
+/dts-v1/;
+#include <dt-bindings/net/mxl,vuni.h>
+#include "prx321-sfu.dtsi"
+#include "prx300-pon.dtsi"
+
+/ {
+	model = "PRX321-HGU-QSPI-PON";
+	compatible = "intel,prx321-hgu-qspi-pon", "intel,prx321-sfu-qspi-pon", "intel,prx321-sfu", "intel,prx300";
+
+	chosen {
+		stdout-path = "serial0";
+	};
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x20000000 0x40000000>; /* 1024 MB */
+	};
+};
+
+&pon_eth {
+	intel,max_ctps = <128>;
+};
+
+/* For voice enable the SPI driver needed for access to the on silicon VCODEC but prevent switching the pinmux to this SPI bus. On this design these pins are used for the QSPI bus. */
+&ssc0 {
+	status = "okay";
+	/delete-property/ pinctrl-names;
+	/delete-property/ pinctrl-0;
+};
+
+&qspi0 {
+	status = "okay";
+	ltq-spinand@0 {
+		status = "okay";
+	};
+};
+
+/* use CPU3 for MPE firmware */
+&cpu3 {
+	default-OS = "MPEFW";
+};
+
+&gsw_core {
+	intel,gsw-globalpce-rules = <256>;
+};
+&cqm {
+	DQ3: cpu-port3 {
+		intel,deq-port = <3 4>;
+	};
+};
+
+&vuni {
+	status = "okay";
+	vani@0 {
+		intel,extra-subif = "VANI0", "VUNI0_0", "VUNI0_1", "VUNI0_us", "VUNI0_2";
+		intel,extra-subif-domain = <VUNI_BR_DOMAIN_NO VUNI_BR_DOMAIN_UC VUNI_BR_DOMAIN_MC VUNI_BR_DOMAIN_US VUNI_BR_DOMAIN_BC>;
+		intel,allow_subif_data_loop; /*Traffic between diff subif */
+	};
+};

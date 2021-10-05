@@ -1,6 +1,7 @@
 #include <dt-bindings/interrupt-controller/mips-gic.h>
 #include <dt-bindings/gpio/gpio.h>
 #include "prx300.dtsi"
+#include "prx300-512MB.dtsi"
 
 /******************************************************************************
  ** Board configuration: Configure LAN/WAN interfaces
@@ -67,6 +68,8 @@
 	intel,bm-buff-num = <0xaf40>;
 	/* Size of each buffer in pool0 */
 	intel,bm-buff-size = <0x1000>;
+	/* Buffer pools are shared for DS and US, no split */
+	intel,bm-buff-split = <0x0 0x0>;
 };
 
 &dma1tx {
@@ -111,13 +114,5 @@
 
 &gphy {
 	status = "okay";
-};
-
-&watchdog {
-	/* individual reset controls that need to
-	 * explicitly asserted during reset
-	 */
-	resets = <&rcu0 0x10 29>;
-	reset-names = "gphy";
 };
 

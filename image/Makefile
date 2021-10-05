@@ -37,6 +37,10 @@ define Build/append-bootcore
 	$(if $(IMAGE_BOOTCORE),dd if=$(IMAGE_BOOTCORE) >> $@)
 endef
 
+define Build/append-uboot
+	dd if=$(subst $(if $(SECUREBOOT),totalimage-secure.img,totalimage.img),uboot.img,$(@)) >> $@
+endef
+
 # $(1) padding to be used.
 define Build/append-rootfs-uImage
 	# Add padding to make the next image start at a specified byte boundary.
@@ -59,6 +63,27 @@ define Build/fullimage
 
 	mv $@.new $@
 endef
+
+define Build/totalimage
+	mkimage -A $(LINUX_KARCH) -O linux -T multi -a 0x00 -C none \
+		-e 0x00 \
+		-n '$(if $(UIMAGE_NAME),$(UIMAGE_NAME),OpenWrt totalimage)' \
+		-d $@ $@.new
+
+	mv $@.new $@
+endef
+
+define Build/ubootimage
+	$(eval uboot_img=$(BIN_DIR)/uboot-$(IMAGE_UBOOT)/u-boot-nand.bin)
+	$(eval uboot_mkimage=$(wildcard $(KDIR)/u-boot-*/build-$(IMAGE_UBOOT)/tools/mkimage))
+	$(uboot_mkimage) -A $(LINUX_KARCH) -T uboot -C lzma -a 0x00 \
+		-e 0x00 \
+		-n 'U-Boot Img' \
+		-d $(uboot_img) $@.new
+
+	mv $@.new $@
+endef
+
 define Flashimage/system_sw
 	dd if=$(IMAGE_ROOTFS) of=$(1).rootfs bs=$(2) conv=sync;
 	echo -en "[kernelA]\nmode=ubi\nvol_id=0\nvol_type=static\nvol_name=kernelA\n" > $(1).ubinize.cfg
@@ -168,9 +193,13 @@ endef
 define Device/lantiqFullImage
   KERNEL := kernel-bin | append-dtb | lzma | pad-offset $(if $(SECUREBOOT), 4k 64, 16 0) | uImage lzma
   IMAGES := $(if $(SECUREBOOT), fullimage-secure.img, fullimage.img)
+  IMAGES += $(if $(CONFIG_INTEL_MIPS_TOTAL_IMAGE),uboot.img $(if $(SECUREBOOT),totalimage-secure.img,totalimage.img))
   IMAGES += $(if $(CONFIG_INTEL_MIPS_FLASH_PROGRAMMER_IMAGE),flashprogram_bins/flashimage.bin)
   IMAGE/fullimage.img := append-kernel | append-bootcore | append-rootfs-uImage 16 | fullimage | check-size $$$$(IMAGE_SIZE)
   IMAGE/fullimage-secure.img := append-kernel | append-rootfs | sign-image | sign-add-header | pad-offset 16 0 | append-bootcore | fullimage | check-size $$$$(IMAGE_SIZE)
+  IMAGE/uboot.img := ubootimage
+  IMAGE/totalimage.img := append-kernel | append-bootcore | append-rootfs-uImage 16 | append-uboot | totalimage | check-size $$$$(IMAGE_SIZE)
+  IMAGE/totalimage-secure.img := append-kernel | append-rootfs | sign-image | sign-add-header | pad-offset 16 0 | append-bootcore | append-uboot | totalimage | check-size $$$$(IMAGE_SIZE)
   IMAGE/flashprogram_bins/flashimage.bin := flashimage 16
 endef
 

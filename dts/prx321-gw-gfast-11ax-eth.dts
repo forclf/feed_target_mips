@@ -1,12 +1,10 @@
 /dts-v1/;
-#include <dt-bindings/net/mxl,vuni.h>
 #include "prx321-gw-11ax-sp.dtsi"
-#include "prx300-pon.dtsi"
 
 /* Model configuration */
 / {
-	model = "PRX321-HGU-PON-GFAST-11AX";
-	compatible = "intel,prx321-hgu-pon-gfast-11ax", "intel,prx300";
+	model = "PRX321-GW-GFAST-11AX-ETH";
+	compatible = "intel,prx321-gw-gfast-11ax-eth", "intel,prx300";
 
 	chosen {
 		stdout-path = "serial0";
@@ -18,17 +16,17 @@
 	};
 };
 
-&pcie1 {
-	reset-gpios = <&gpio0 29 GPIO_ACTIVE_HIGH>;
+&ponmbox1 {
+	status = "okay";
+	resets = <&rcu0 0x10 28>;
+	reset-names = "ponip";
+	/delete-property/ pinctrl-names;
+	/delete-property/ pinctrl-0;
 };
 
-&vuni {
-	status = "okay";
-	vani@0 {
-		intel,extra-subif = "VANI0", "VUNI0_0", "VUNI0_1", "VUNI0_us", "VUNI0_2";
-		intel,extra-subif-domain = <VUNI_BR_DOMAIN_NO VUNI_BR_DOMAIN_UC VUNI_BR_DOMAIN_MC VUNI_BR_DOMAIN_US VUNI_BR_DOMAIN_BC>;
-		intel,allow_subif_data_loop; /*Traffic between diff subif */
-	};
+/* invert the reset polarity for VRX618 */
+&pcie1 {
+	reset-gpios = <&gpio0 29 GPIO_ACTIVE_HIGH>;
 };
 
 / {
@@ -59,8 +57,28 @@
 	};
 };
 
-&pon_eth {
-	intel,max_ctps = <128>;
+&eth {
+	wan: interface@5 {
+		compatible = "lantiq,xrx500-pdi";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <5>;
+		lantiq,wan = <1>;
+		intel,dp-dev-port = <2>;
+		intel,dp-port-id = <2>;
+		mac = <&gsw_mac0>;
+
+		ethernet@5 {
+			compatible = "lantiq,xrx500-pdi-port";
+			reg = <1>;
+			phy-mode = "rgmii";
+		};
+	};
+};
+
+&wan_xpcs {
+	status = "okay";
+	xpcs-mode = <0>;
 };
 
 /* use CPU3 for MPE firmware */

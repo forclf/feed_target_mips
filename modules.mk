@@ -157,7 +157,7 @@ $(eval $(call KernelPackage,intel_mips-svip-nat))
 define KernelPackage/intel_eth_drv_xrx500
  SUBMENU:=Lantiq
  TITLE:= Intel Ethernet Driver for xRX500 (Module Support)
- DEPENDS:=@(TARGET_intel_mips_xrx500||TARGET_intel_mips_prx300) +kmod-intel_eth_xrx500_fw
+ DEPENDS:=@(TARGET_intel_mips_xrx500||TARGET_intel_mips_prx300) +kmod-intel_eth_xrx500_fw +TARGET_intel_mips_prx300:kmod-gwdpa-dpm
  KCONFIG:= \
         CONFIG_LTQ_ETH_XRX500 \
         CONFIG_SW_ROUTING_MODE=y \
@@ -177,7 +177,7 @@ $(eval $(call KernelPackage,intel_eth_drv_xrx500))
 define KernelPackage/intel_gint_eth_drv
  SUBMENU:=Lantiq
  TITLE:= Intel G.INT Ethernet Driver (Module Support)
- DEPENDS:=@TARGET_intel_mips_prx300
+ DEPENDS:=@TARGET_intel_mips_prx300 +kmod-gwdpa-dpm
  KCONFIG:=CONFIG_INTEL_GINT_ETH
  FILES:= \
         $(LINUX_DIR)/drivers/net/ethernet/lantiq/intel_gint_eth_drv.ko
@@ -193,7 +193,7 @@ $(eval $(call KernelPackage,intel_gint_eth_drv))
 define KernelPackage/intel_pon_hgu_vuni
  SUBMENU:=Lantiq
  TITLE:= Intel PON HGU vUNI Driver (Module Support)
- DEPENDS:=@TARGET_intel_mips_prx300
+ DEPENDS:=@TARGET_intel_mips_prx300 +kmod-gwdpa-dpm
  KCONFIG:=CONFIG_INTEL_PON_HGU_VUNI
  FILES:= \
         $(LINUX_DIR)/drivers/net/ethernet/lantiq/intel_pon_hgu_vuni.ko
@@ -240,7 +240,7 @@ $(eval $(call KernelPackage,intel_eth_xrx500_fw))
 
 define KernelPackage/usb-dwc3-grx500
   TITLE:=Intel DWC3 USB GRX500 driver
-  DEPENDS:=+kmod-usb-dwc3
+  DEPENDS:=@TARGET_intel_mips_xrx500 +kmod-usb-dwc3
   KCONFIG:= \
 	CONFIG_PHY_GRX500_USB \
 	CONFIG_USB_DWC3_GRX500
@@ -298,6 +298,7 @@ $(eval $(call KernelPackage,intel_ppv4_qos_drv_mod))
 define KernelPackage/intel-extmark
   TITLE:=Intel Extension Mark Support
   SUBMENU:=Intel
+  DEPENDS:=@(TARGET_intel_mips_xrx500||TARGET_intel_mips_prx300)
   KCONFIG:= \
 	CONFIG_NETWORK_EXTMARK=y
 endef
@@ -311,6 +312,7 @@ $(eval $(call KernelPackage,intel-extmark))
 define KernelPackage/intel-cpufreq
   TITLE:=Intel CPUFREQ support
   SUBMENU:=Intel
+  DEPENDS:=@(TARGET_intel_mips_xrx500||TARGET_intel_mips_prx300)
   KCONFIG:= \
         CONFIG_CPU_FREQ_DEFAULT_GOV_CONSERVATIVE=y \
         CONFIG_INTEL_DATAPATH_CPUFREQ=y
@@ -325,6 +327,20 @@ endef
 
 $(eval $(call KernelPackage,intel-cpufreq))
 
+define KernelPackage/use_wave600_2_emulator
+  TITLE:=Emulator Support for WAVE600-2 
+  SUBMENU:=Intel
+  DEPENDS:=@TARGET_intel_mips
+  KCONFIG:= \
+	CONFIG_LTQ_UMT_SW_INTERVAL_DEFAULT=25600 \
+	CONFIG_USE_WAVE600_2_EMULATOR=y
+endef
+
+define KernelPackage/USE_WAVE600_2_Emulator/description
+ Add Emulator support for WAVE600-2 
+endef
+
+$(eval $(call KernelPackage,use_wave600_2_emulator))
 
 define KernelPackage/serial-lantiq
   TITLE:=Intel Serial (compile in)
@@ -357,6 +373,7 @@ $(eval $(call KernelPackage,serial-bootcore))
 define KernelPackage/intel-icc-regmap
   TITLE:=Intel ICC regmap driver (compiled in)
   SUBMENU:=Intel
+  DEPENDS:=@TARGET_intel_mips
   KCONFIG:= \
         CONFIG_REGMAP_ICC=y
 endef
@@ -366,19 +383,3 @@ define KernelPackage/intel-icc-regmap/description
 endef
 
 $(eval $(call KernelPackage,intel-icc-regmap))
-
-
-define KernelPackage/pon-qos
-  SUBMENU:=Lantiq
-  TITLE:=PON QoS Driver
-  DEPENDS:=@TARGET_intel_mips_prx300
-  KCONFIG:=CONFIG_PON_QOS
-  FILES:=$(LINUX_DIR)/drivers/net/datapath/pon_qos/pon_qos.ko
-  AUTOLOAD:=$(call AutoProbe,pon_qos)
-endef
-
-define KernelPackage/pon_qos/description
- Kernel module for PON QoS support.
-endef
-
-$(eval $(call KernelPackage,pon-qos))

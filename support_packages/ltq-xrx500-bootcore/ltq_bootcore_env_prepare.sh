@@ -95,6 +95,7 @@ fix_config_options() {
 		local VAR2=${VAR/\$\(TOPDIR\)/$CURDIR}
 		sed -i '/CONFIG_KERNEL_GIT_CLONE_URI/d' $BASEDIR/.config
 		echo CONFIG_KERNEL_GIT_CLONE_URI=\"$VAR2\" >> $BASEDIR/.config
+		echo "CONFIG_KERNEL_GIT_REF=\"patch\"" >> $BASEDIR/.config
 	fi
 
 	local VAR=`grep 'CONFIG_INTEL_MIPS_KEYS_PROVISION=y' $CURDIR/.config`;

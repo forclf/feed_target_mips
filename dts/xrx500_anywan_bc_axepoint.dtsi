@@ -417,7 +417,7 @@ and USB C use sso gpio pin3 , default shall be pulled high.
 				regulator-name = "1V15VDD";
 				regulator-always-on;
 				regulator-boot-on;
-				regulator-min-microvolt = <1100000>;
+				regulator-min-microvolt = <1000000>;
 				regulator-max-microvolt = <1200000>;
 				regulator-microvolt-offset = <0>;
 				vout-slew-rate = <0>;
@@ -543,7 +543,7 @@ and USB C use sso gpio pin3 , default shall be pulled high.
 
 		ethernet@4 {
 			compatible = "lantiq,xrx500-pdi-port";
-			reg = <7>;
+			reg = <6>;
 			interrupt-parent = <&gic>;
 			interrupts = <0 111 4>;
 			phy-mode = "rgmii";
@@ -563,10 +563,7 @@ and USB C use sso gpio pin3 , default shall be pulled high.
 		ethernet@6 {
 			compatible = "lantiq,xrx500-pdi-port";
 			reg = <1>;
-			interrupt-parent = <&gic>;
-			interrupts = <0 111 4>;
 			phy-mode = "rgmii";
-			phy-handle = <&phy1>;
 		};
 	};
 };

@@ -2,6 +2,7 @@
 #include <dt-bindings/interrupt-controller/mips-gic.h>
 #include <dt-bindings/clock/intel,grx500-clk.h>
 #include <dt-bindings/pinctrl/intel,equilibrium.h>
+#include <dt-bindings/input/input.h>
 /*****************************************************************
 ** Include a chip configuration file
 *****************************************************************/
@@ -12,7 +13,7 @@
 #include "xrx500_anywan_bc_axepoint.dtsi"
 
 / {
-	model = "EASY350 ANYWAN (GRX350) Main model";
+	model = "EASY350 ANYWAN (GRX350) Axepoint Asurada model";
 	compatible = "intel,easy350_anywan", "lantiq,grx500", "lantiq,xrx500";
 
 	chosen {
@@ -66,13 +67,8 @@
 				};
 
 				partition@2c0000 {
-					label = "Bootcore";
-					reg = <0x2c0000 0x1000000>;
-				};
-
-				partition@12c0000 {
 					label = "system_sw";
-					reg = <0x12c0000 0x6C00000>;
+					reg = <0x2c0000 0x7C00000>;
 				};
 
 				partition@7Ec0000 {
@@ -83,6 +79,174 @@
 		};
 	};
 };
+
+&gsw_f24s {
+	status = "disabled";
+};
+
+&usb0 {
+	status = "disabled";
+};
+
+&usb0_phy {
+	status = "disabled";
+};
+
+&usb1 {
+	status = "disabled";
+};
+
+&usb1_phy {
+	status = "disabled";
+};
+
+&ssc0 {
+	/delete-node/ vcodec@5;
+};
+
+&ssc1 {
+	status = "disabled";
+};
+
+&i2c {
+	status = "disabled";
+};
+
+&ssogpio {
+	status = "disabled";
+};
+
+&ssoled {
+	status = "disabled";
+};
+
+&pcie_phy2 {
+	status = "disabled";
+};
+
+&pcie0 {
+	reset-gpios = <&gpio0 17 GPIO_ACTIVE_LOW>; // default value, it can be updated on board.
+};
+
+&pcie2 {
+	status = "disabled";
+};
+
+&usb0_vbus {
+	status = "disabled";
+};
+
+&usb1_vbus {
+	status = "disabled";
+};
+
+&pinctrl {
+	/delete-node/ pinctrl_spi0_cs1;
+	/delete-node/ pinctrl_spi1_cs0;
+};
+
+&cpu0 {
+	/delete-property/ cpu-supply;
+}; 
+
+&lan5 {
+	status = "disabled";
+};
+
+/ {
+
+/******************************************************************************
+** Board configuration: Enable buttons on the board.  
+******************************************************************************/
+	ltq_swreset {
+		status = "disabled";
+	};
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		reset {
+			label = "reset";
+			gpios = <&gpio0 0 1>;
+			linux,code = <KEY_RESTART>;
+		};
+		wps {
+			label = "wps";
+			gpios = <&gpio0 11 1>;
+			linux,code = <KEY_WPS_BUTTON>;
+		};
+	};
+
+	gpio-leds {
+		compatible = "gpio-leds";
+		power_led_green {
+			label = "Power_LED_Green";
+			gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+		power_led_red {
+			label = "Power_LED_Red";
+			gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;
+			default-state = "off";
+		};
+
+		act_led_green {
+			label = "Act_LED_Green";
+			gpios = <&gpio0 19 GPIO_ACTIVE_LOW>;
+			default-state = "on";
+		};
+
+		act_led_red {
+			label = "Act_LED_Red";
+			gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
+			default-state = "off";
+		};
+
+		cnv_led_green {
+			label = "CNV_LED_Green";
+			gpios = <&gpio0 15 GPIO_ACTIVE_LOW>;
+			default-state = "on";
+		};
+		cnv_led_red {
+			label = "CNV_LED_Red";
+			gpios = <&gpio0 16 GPIO_ACTIVE_LOW>;
+			default-state = "off";
+		};
+		24g_led_green {
+			label = "24G_LED_Green";
+			gpios = <&gpio0 18 GPIO_ACTIVE_LOW>;
+			default-state = "on";
+		};
+
+		24g_led_red {
+			label = "24G_LED_Red";
+			gpios = <&gpio1 2 GPIO_ACTIVE_LOW>;
+			default-state = "off";
+		};
+		5g_led_green {
+			label = "5G_LED_Green";
+			gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
+			default-state = "on";
+		};
+		5g_led_red {
+			label = "5G_LED_Red";
+			gpios = <&gpio1 4 GPIO_ACTIVE_LOW>;
+			default-state = "off";
+		};
+		tv_led_green {
+			label = "TV_LED_Green";
+			gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;
+			default-state = "on";
+		};
+		tv_led_red {
+			label = "TV_LED_Red";
+			gpios = <&gpio1 11 GPIO_ACTIVE_LOW>;
+			default-state = "off";
+		};
+	};
+/*****************************************************************************/
+};
+
 
 /******************************************************************************
 ** Model configuration: Select Gigabit or fast ethernet firmware to load to 
@@ -133,28 +297,6 @@
 
 /******************************************************************************/
 
-&cooling_maps {
-	map0 {
-		trip = <&cpu_alert0>;
-		cooling-device = <&cpu0 3 3>;
-	};
-};
-
-&buck1_reg {
-	regulator-name = "1V15VDD";
-	regulator-min-microvolt = <1000000>;
-	regulator-max-microvolt = <1200000>;
-};
-
-&buck2_reg {
-	regulator-name = "1V15VDD-shared";
-	regulator-min-microvolt = <1000000>;
-	regulator-max-microvolt = <1200000>;
-};
-
-&cpu0 {
-	cpu-supply = <&buck1_reg>;
-};
 
 &cpu_opp_table {
         compatible = "operating-points-v2";

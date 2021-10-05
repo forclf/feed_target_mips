@@ -16,7 +16,7 @@
 /******************************************************************************
  ** Board configuration: Enable CoC power management board feature
  ******************************************************************************/
-&i2c0 {
+&i2c_gpio {
 	/* power monitor */
 	ina219@40 {
 		compatible = "ina219";

@@ -20,12 +20,18 @@ config INTEL_MIPS_ROOTFS_DATA_SIZE
 	  additional space for backup bank images and additional space for new features from future firmware
 	  upgrades.
 
+config INTEL_MIPS_TOTAL_IMAGE
+	bool "Total image support (fullimage + uboot combined)" if IMAGEOPT
+	depends on TARGET_intel_mips
+	help
+	  Create single image with kernel, rootfs, bootcore and uboot combined (fullimage + uboot) with header.
+
 menuconfig INTEL_MIPS_SECBOOT
-	bool "Secure Boot Image options for MIPS based Intel Platforms" if IMAGEOPT
+	bool "Secure Boot Image options for MIPS based Maxlinear Platforms" if IMAGEOPT
 	depends on (TARGET_intel_mips_xrx500||TARGET_intel_mips_xrx500_4kec||TARGET_intel_mips_prx300||TARGET_intel_mips_prx300_4kec)
 	help
 		These options allow to build secure boot image variant for
-		Intel MIPS XRX500 Platform. Input signtool, public key and
+		Maxlinear MIPS XRX500 Platform. Input signtool, public key and
 		CRkey (Confidentiality Root Key) with optional Certificate 
 		support and path
 
@@ -70,9 +76,9 @@ if INTEL_MIPS_SECBOOT
 			If unspecified, it defaults to cert.bin
 
 	config INTEL_MIPS_ROLLBACK
-		int "rollback id (0-63)"
-		range 0 63
-		default "0"
+		int "rollback id (1-63)"
+		range 1 63
+		default "1"
 		help
 			Rollback ID added in the image header.
 endif
