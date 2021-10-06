@@ -23,7 +23,7 @@ PKG_SOURCE_MIRROR:=0
 STRIP=/bin/true
 RSTRIP=/bin/true
 
-include $(INCLUDE_DIR)/package-version-override.mk
+-include $(INCLUDE_DIR)/package-version-override.mk
 include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)
