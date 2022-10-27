@@ -76,6 +76,14 @@ define Device/GRX500_EVM_VDSL35B_SEC_DEBUG
 endef
 TARGET_DEVICES += GRX500_EVM_VDSL35B_SEC_DEBUG
 
+define Device/PHICOMM_K3C
+  $(Device/xrx500)
+  DEVICE_DTS := phicomm_k3c
+  DEVICE_TITLE := Phicomm k3c 11AC Dual Band Wifi OpenWRT Ethernet Router
+  DEVICE_PACKAGES := $(OWRT_PACKAGES) $(DSL_CPE_PACKAGES)
+endef
+TARGET_DEVICES += PHICOMM_K3C
+
 endif
 
 ifeq ($(SUBTARGET),xrx500_4kec)
