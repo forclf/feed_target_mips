@@ -79,6 +79,8 @@ TARGET_DEVICES += GRX500_EVM_VDSL35B_SEC_DEBUG
 define Device/PHICOMM_K3C
   $(Device/xrx500)
   DEVICE_DTS := phicomm_k3c
+  IMAGES := sysupgrade.bin fullimage.img
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
   DEVICE_TITLE := Phicomm k3c 11AC Dual Band Wifi OpenWRT Ethernet Router
   DEVICE_PACKAGES := $(OWRT_PACKAGES) $(DSL_CPE_PACKAGES)
 endef
